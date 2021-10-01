@@ -241,7 +241,7 @@ static void calcRecordSize( CrgDataStruct* crgData );
 /**
 * retrieve an ASCII line from a buffer (i.e. get all bytes until the
 * terminating '\n' or end of buffer) 
-* @param  dstBuffer  ponter to the destination where to copy the resulting ASCII data
+* @param  dstBuffer  pointer to the destination where to copy the resulting ASCII data
 * @param  dstSize    maximum number of bytes which may be stored in the destination
 * @param  srcBuffer  the source from which to copy the data
 * @param  srcSize    maximum number of bytes which may be retrieved from the source
@@ -1119,13 +1119,13 @@ static int
 decodeDataFormat( CrgDataStruct* crgData, const char* buffer, int code )
 {
     const char* bufPtr = buffer;
-    char dataFormat[5] = {'0', '0', '0', '0', '\0'}; 
+    char dataFormat[] = "0000";
     
     if ( !( bufPtr = findToken( buffer, "#:" ) ) )
         return 0;
 
     /* data format are the first 4 characters after token */
-    memcpy ( dataFormat, bufPtr, strlen(bufPtr)>4?4:strlen(bufPtr));
+    strncpy(dataFormat, bufPtr, 4);
     
     crgData->admin.dataFormat |= strchr( dataFormat, 'L' ) ? dDataFormatLong            : dDataFormatCompact;
     crgData->admin.dataFormat |= strchr( dataFormat, 'D' ) ? dDataFormatPrecisionDouble : dDataFormatPrecisionSingle;
@@ -1289,8 +1289,9 @@ calcRecordSize( CrgDataStruct* crgData )
 static size_t
 getLineFromData( char* dstBuffer, int dstSize, char* srcBuffer, size_t srcSize ) 
 {
-    char *tgtPtr  = strchr( srcBuffer, '\n' );
-    char *testPtr = strchr( srcBuffer, '\r' );
+    char *tgtPtr  = memchr( srcBuffer, '\n' , srcSize );
+    char *testPtr = memchr( srcBuffer, '\r' , srcSize );
+    
     size_t  xferSize; 
     
     tgtPtr = ( testPtr && ( testPtr < tgtPtr ) ) ? testPtr : tgtPtr;
@@ -1486,8 +1487,8 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
                 *termPtr = '\0';
             }
                 
-            dataPtr = strchr( oldDataPtr, '\n' );
-            testPtr = strchr( oldDataPtr, '\r' );
+            dataPtr = memchr( oldDataPtr, '\n', nBytesLeft );
+            testPtr = memchr( oldDataPtr, '\r', nBytesLeft );
     
             if ( testPtr )
                 dataPtr = ( testPtr < dataPtr ) ? dataPtr : testPtr;

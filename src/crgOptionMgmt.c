@@ -502,6 +502,10 @@ crgOptionCopyAll( CrgOptionsStruct* dst, CrgOptionsStruct* src )
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionCopyAll: have NULL source or destination. Ignoring request.\n" );
         return;
     }
+
+    /* --- delete default initialisation --- */
+    if( dst->entry )
+        crgFree( dst->entry );
     
     /* --- first copy administration data --- */
     memcpy( dst, src, sizeof( CrgOptionsStruct ) );
@@ -515,7 +519,7 @@ crgOptionCopyAll( CrgOptionsStruct* dst, CrgOptionsStruct* src )
         dst->noEntries = 0;
         return;
     }
-        
+      
     /* --- copy the actual entries --- */
     memcpy( dst->entry, src->entry, src->noEntries * sizeof( CrgOptionEntryStruct ) );
 }
@@ -528,7 +532,7 @@ crgOptionCreateList( CrgOptionsStruct* optionList )
     
     if ( optionList->entry )
         crgFree( optionList->entry );
-    
+
     optionList->noEntries = 0;
     optionList->entry     = ( CrgOptionEntryStruct* ) crgCalloc( dCrgSizeOptList + 1, sizeof( CrgOptionEntryStruct ) );
     

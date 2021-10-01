@@ -68,7 +68,7 @@ crgContactPointCreate( int dataSetId )
     crgContactPointSetDefaultOptions( cpTableSize - 1 );
     
     /* --- get the options defined in the data set --- */
-    crgOptionCopyAll( &( cp->options ), &( crgData->options ) ); 
+    crgOptionCopyAll( &( cp->options ), &( crgData->options ) );
     
 #ifdef dCrgEnableDebug2
     crgMsgPrint( dCrgMsgLevelNotice, "crgContactPointCreate: created contact point %d. Now have %d contact points.\n", cpTableSize - 1, cpTableSize );
@@ -82,10 +82,10 @@ int
 crgContactPointDelete( int cpId )
 {
     CrgContactPointStruct* cp = crgContactPointGetFromId( cpId );
-    
+   
     if ( !cp )
         return 0;
-    
+
     /* --- free data associated with the contact point --- */
     crgContactPointReset( cp );
     
@@ -148,9 +148,8 @@ crgContactPointReset( CrgContactPointStruct* cp )
     
     cp->options.entry     = NULL;
     cp->options.noEntries = 0;
-    
-    /* crgMsgPrint( dCrgMsgLevelWarn, "crgContactPointReset: called.\n" ); */
 
+    crgMsgPrint( dCrgMsgLevelWarn, "crgContactPointReset: called.\n" );
 }
 
 int

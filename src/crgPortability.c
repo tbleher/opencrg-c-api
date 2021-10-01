@@ -95,13 +95,13 @@ crgPortSetMsgLevel( int level )
     if ( level >= dCrgMsgLevelNone && level <= dCrgMsgLevelDebug )
         mMsgLevel = level;
 }
-   
+    
 void*
 crgCalloc( size_t nmemb, size_t size )
 {
-   if ( mCallocCallback )
+    if ( mCallocCallback )
      return mCallocCallback( nmemb , size );   
-   return calloc( nmemb, size );
+    return calloc( nmemb, size );
 }
 
 void
@@ -127,12 +127,12 @@ crgReallocSetCallback( void* ( *func ) ( void* ptr, size_t size ) )
 void
 crgFree( void* ptr )
 {
-  if ( mFreeCallback )
+    if ( mFreeCallback )
     {
-      mFreeCallback( ptr );
-      return;
+        mFreeCallback( ptr );
+        return;
     }
-  free( ptr );
+    free( ptr );
 }
 
 void

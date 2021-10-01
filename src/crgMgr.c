@@ -4,9 +4,9 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  19.12.2011 by H. Helmich @ VIRES GmbH
+ *  last mod.:  04.01.2012 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2012 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -676,7 +676,7 @@ void
 crgMemRelease( void )
 {
     int i;
-    
+
     /* --- delete all data sets --- */
     for ( i = 0; i < sNoDataSets; i++ )
     {
@@ -686,7 +686,7 @@ crgMemRelease( void )
     
     /* --- finally: release the list holding all data sets --- */
     crgFree( sDataSetList );
-    
+
     sDataSetList = NULL;
     sNoDataSets  = 0;
 }
@@ -694,7 +694,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.0.4, December 19, 2011";
+    return "OpenCRG C-API release 1.0.5 - RC1, January 04, 2012";
 }
 
 int
