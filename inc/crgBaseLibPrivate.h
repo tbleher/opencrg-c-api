@@ -10,9 +10,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	03.12.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  08.04.2014 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2014 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -298,7 +298,7 @@ typedef union
 } CrgNanUnionFloat;
 
 /* ====== GLOBAL VARIABLES ====== */
-extern int mBigEndian;             /* endian-ness of machine */
+extern int mCrgBigEndian;             /* endian-ness of machine */
 
 
 /* ====== METHODS in crgLoader.c ====== */
@@ -319,6 +319,19 @@ extern int mBigEndian;             /* endian-ness of machine */
     * @param  crgData     pointer to the CRG data set which is to be altered
     */
     extern void crgLoaderPrepareData( CrgDataStruct* crgData );
+
+    /**
+    * check CRG option settings for consistency and accuracy
+    * @return true        if crgData is valid
+    */
+    extern int crgCheckOpts( CrgDataStruct* crgData );
+
+    /**
+    * check CRG modifier settings for consistency and accuracy
+    * @return true        if crgData is valid
+    */
+    extern int crgCheckMods( CrgDataStruct* crgData );
+
 
 /* ====== METHODS in crgStatistics.c ====== */
     /**

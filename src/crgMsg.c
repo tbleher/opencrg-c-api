@@ -7,7 +7,7 @@
  *  first edit:	31.10.2008 by M. Dupuis @ VIRES GmbH
  *  last mod.:  02.11.2009 by M. Dupuis @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2013 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

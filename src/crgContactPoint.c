@@ -4,9 +4,9 @@
  *  purpose:	contact point management routines
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  26.07.2013 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2013 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -128,10 +128,13 @@ crgContactPointDeleteAll( int dataSetId )
     }
 
     /* --- now release any memory held for the contact point management --- */
-    crgFree( cpTable );
+    if(dataSetId == -1)
+    {
+        crgFree( cpTable );
     
-    cpTable     = NULL;
-    cpTableSize = 0;
+        cpTable     = NULL;
+        cpTableSize = 0;
+    }
 }
 
 void
@@ -149,7 +152,7 @@ crgContactPointReset( CrgContactPointStruct* cp )
     cp->options.entry     = NULL;
     cp->options.noEntries = 0;
 
-    crgMsgPrint( dCrgMsgLevelWarn, "crgContactPointReset: called.\n" );
+    /* crgMsgPrint( dCrgMsgLevelWarn, "crgContactPointReset: called.\n" );*/
 }
 
 int

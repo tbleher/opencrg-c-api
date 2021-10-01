@@ -1,6 +1,6 @@
 # Makefile for OpenCRG project
 #
-#    Copyright 2008 VIRES Simulationstechnologie GmbH
+#    Copyright 2013 VIRES Simulationstechnologie GmbH
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ INC_DIR = inc
 COMP = gcc
 
 #Compiler options
-CFLGS = -Wall -ggdb -ansi -std=c99 -I$(INC_DIR)	#all Warnings with debugging
+# CFLGS = -Wall -ggdb -ansi -I$(INC_DIR)	#all Warnings with debugging
+CFLGS = -Wall -O3 -ansi -I$(INC_DIR)            #all Warnings with level 3 optimizations
 
 #Compiler call
 CC = $(COMP) $(CFLGS)
@@ -42,9 +43,9 @@ SOURCES = \
 	crgEvaluv2xy.c \
 	crgEvalz.c \
 	crgEvalpk.c \
-	crgLoader.c \
-	crgOptionMgmt.c \
-    crgPortability.c
+        crgLoader.c \
+        crgOptionMgmt.c \
+        crgPortability.c
 
 #EXTERNAL OBJECT FILES
 OBJECTS = $(SOURCES:.c=.o)

@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	31.10.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  19.12.2011 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  08.04.2014 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2014 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -457,9 +457,9 @@ static CrgReaderCallbackStruct	sLoaderCallbacksOpts[] =
    { "log_hist_freq",        decodeHdrOpMod, dOpcodeNone                    },
    { "log_stat",             decodeHdrOpMod, dOpcodeNone                    },
    { "log_stat_freq",        decodeHdrOpMod, dOpcodeNone                    },
-   { "check_eps",            decodeHdrOpMod, dOpcodeNone                    },
-   { "check_inc",            decodeHdrOpMod, dOpcodeNone                    },
-   { "check_tol",            decodeHdrOpMod, dOpcodeNone                    },
+   { "check_eps",            decodeHdrOpMod, dCrgCpOptionCheckEps           },
+   { "check_inc",            decodeHdrOpMod, dCrgCpOptionCheckInc           },
+   { "check_tol",            decodeHdrOpMod, dCrgCpOptionCheckTol           },
    { "$" ,                   setSection,     dFileSectionNone               },
    { "",                     NULL,           -1                             }
 };
@@ -474,10 +474,12 @@ static CrgReaderCallbackStruct	sLoaderCallbacksMods[] =
    { "scale_curvature",      decodeHdrOpMod, dCrgModScaleCurvature          },
    { "grid_nan_mode",        decodeHdrOpMod, dCrgModGridNaNMode             },
    { "grid_nan_offset",      decodeHdrOpMod, dCrgModGridNaNOffset           },
+   { "refline_rotcenter_x",  decodeHdrOpMod, dCrgModRefLineRotCenterX       },
+   { "refline_rotcenter_y",  decodeHdrOpMod, dCrgModRefLineRotCenterY       },
+   { "refline_offset_phi",   decodeHdrOpMod, dCrgModRefLineOffsetPhi        },
    { "refline_offset_x",     decodeHdrOpMod, dCrgModRefLineOffsetX          },
    { "refline_offset_y",     decodeHdrOpMod, dCrgModRefLineOffsetY          },
    { "refline_offset_z",     decodeHdrOpMod, dCrgModRefLineOffsetZ          },
-   { "refline_offset_phi",   decodeHdrOpMod, dCrgModRefLineOffsetPhi        },
    { "refpoint_u_fraction",  decodeHdrOpMod, dCrgModRefPointUFrac           },
    { "refpoint_u_offset",    decodeHdrOpMod, dCrgModRefPointUOffset         },
    { "refpoint_u",           decodeHdrOpMod, dCrgModRefPointU               },
@@ -508,7 +510,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksFile[] =
 };
 
 /* ====== GLOBAL VARIABLES ====== */
-int mBigEndian =  0;             /* internal data format is little endian per default */
+int mCrgBigEndian =  0;             /* internal data format is little endian per default */
 
 /* ====== LOCAL VARIABLES ====== */
 static int mFileLevel =  0;      /* level at which current file is being read (for include files) */
@@ -825,6 +827,9 @@ decodeHdrOpMod( CrgDataStruct* crgData, const char* buffer, int opcode )
         case dCrgCpOptionRefLineClose:
         case dCrgCpOptionRefLineSearchU:
         case dCrgCpOptionRefLineSearchUFrac:
+        case dCrgCpOptionCheckEps:
+        case dCrgCpOptionCheckInc:
+        case dCrgCpOptionCheckTol:
             if ( !optionEnabled )
                 break;
             {
@@ -840,10 +845,12 @@ decodeHdrOpMod( CrgDataStruct* crgData, const char* buffer, int opcode )
         case dCrgModScaleWidth:
         case dCrgModScaleCurvature:
         case dCrgModGridNaNOffset:
+        case dCrgModRefLineRotCenterX:
+        case dCrgModRefLineRotCenterY:
+        case dCrgModRefLineOffsetPhi:
         case dCrgModRefLineOffsetX:
         case dCrgModRefLineOffsetY:
         case dCrgModRefLineOffsetZ:
-        case dCrgModRefLineOffsetPhi:
         case dCrgModRefPointUFrac:
         case dCrgModRefPointUOffset:
         case dCrgModRefPointU:
@@ -1289,8 +1296,8 @@ calcRecordSize( CrgDataStruct* crgData )
 static size_t
 getLineFromData( char* dstBuffer, int dstSize, char* srcBuffer, size_t srcSize ) 
 {
-    char *tgtPtr  = memchr( srcBuffer, '\n' , srcSize );
-    char *testPtr = memchr( srcBuffer, '\r' , srcSize );
+    char *tgtPtr  = strchr( srcBuffer, '\n' );
+    char *testPtr = strchr( srcBuffer, '\r' );
     
     size_t  xferSize; 
     
@@ -1487,8 +1494,8 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
                 *termPtr = '\0';
             }
                 
-            dataPtr = memchr( oldDataPtr, '\n', nBytesLeft );
-            testPtr = memchr( oldDataPtr, '\r', nBytesLeft );
+            dataPtr = strchr( oldDataPtr, '\n' );
+            testPtr = strchr( oldDataPtr, '\r' );
     
             if ( testPtr )
                 dataPtr = ( testPtr < dataPtr ) ? dataPtr : testPtr;
@@ -2418,6 +2425,312 @@ crgLoaderPrepareData( CrgDataStruct* crgData )
     crgMsgPrint( dCrgMsgLevelDebug, "crgLoaderPrepareData: crgCalcUtilityData() done.\n" );
 }
 
+
+int
+crgCheck( int dataSetId )
+{
+    CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
+
+    if ( !crgData )
+    {
+        crgMsgPrint( dCrgMsgLevelWarn, "crgCheck: invalid data set id <%d>.\n", dataSetId );
+        return 0;
+    }
+
+    /* @todo: move to one of the following sub check routines */
+    /* --- check if closed refline option is valid --- */
+    if( crgData->util.uIsClosed && crgOptionHasValueInt( &( crgData->options ), dCrgRefLineCloseTrack, 1 ) )
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckData: refline cannot be closed.\n" );
+        return 0;
+    }
+
+    if( !crgCheckOpts( crgData ) )
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: failed to validate option settings.\n" );
+        return 0;
+    }
+
+    if( !crgCheckMods( crgData ) )
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: failed to validate modifier settings.\n" );
+        return 0;
+    }
+
+    return 1;
+}
+
+int
+crgCheckOpts( CrgDataStruct* crgData )
+{
+    int optAsInt;
+    double optAsDouble, optAsDoubleTemp;
+    double midinc, mininc;
+    double ceps, cinc, ctol;
+
+    /* --- check singular value ranges --- */
+
+    /* CRG elevation grid border modes in u and v directions */
+    if( crgOptionGetInt( &crgData->options, dCrgCpOptionBorderModeU, &optAsInt ) )
+    {
+        if( optAsInt < 0 || optAsInt > 4 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"border_mode_u\": %d\n", optAsInt );
+            return 0;
+        }
+    }
+
+    if( crgOptionGetInt( &crgData->options, dCrgCpOptionBorderModeV, &optAsInt ) )
+    {
+        if( optAsInt < 0 || optAsInt > 4 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"border_mode_v\": %d\n", optAsInt );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionSmoothUBegin, &optAsDouble ) )
+    {
+        if ( optAsDouble < 0 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"border_smooth_ubeg\": %f\n", optAsDouble );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionSmoothUEnd, &optAsDouble ) )
+    {
+        if ( optAsDouble < 0 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"border_smooth_uend\": %f\n", optAsDouble );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetInt( &crgData->options, dCrgCpOptionRefLineContinue, &optAsInt ) )
+    {
+        if ( optAsInt < 0 || optAsInt > 1 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"refline_continuation\": %d\n", optAsInt );
+            return 0;
+        }
+    }
+
+    /* CRG reference line search strategy */
+    optAsDoubleTemp = 0.;
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionRefLineFar, &optAsDoubleTemp ) )
+    {
+        if ( optAsDoubleTemp < 0 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"refline_search_far\": %f\n", optAsDoubleTemp );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionRefLineClose, &optAsDouble ) )
+    {
+        if ( optAsDouble < 0 || ( crgOptionIsSet( &crgData->options, dCrgCpOptionRefLineFar ) && optAsDouble >= optAsDoubleTemp ) )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"refline_search_close\": %f\n", optAsDouble );
+            return 0;
+        }
+    }
+
+    /* CRG message options */
+    if ( crgOptionGetInt( &crgData->options, dCrgCpOptionWarnMsgs, &optAsInt ) )
+    {
+        if ( optAsInt < -1 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"warn_msgs\": %d", optAsInt );
+            return 0;
+        }
+    }
+
+    /* not implemented: warn_curv_local  */
+    /* not implemented: warn_curv_global */
+    /* not implemented: log_msgs         */
+    /* not implemented: log_eval         */
+    /* not implemented: log_eval_freq    */
+    /* not implemented: log_hist         */
+    /* not implemented: log_hist_freq    */
+    /* not implemented: log_stat         */
+    /* not implemented: log_stat_freq    */
+
+    /* CRG check options */
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionCheckEps, &ceps ) )
+    {
+        if ( ceps < 1.0e-6 || ceps > 1.0e-2 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"check_eps\": %f\n", ceps );
+            return 0;
+        }
+    }
+    else
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: missing default option data \"check_eps\": %f\n", ceps );
+        return 0;
+    }
+
+    midinc = 0.001;
+    mininc = midinc * ( 1 - ceps ); /* dCRGCpOptionCheckEps always exists -> is default option */
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionCheckInc, &cinc ) )
+    {
+        if ( cinc < mininc || fabs( ((int)(cinc/midinc+0.5)) * midinc - cinc ) > ceps * ((midinc > cinc)? midinc : cinc) )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"check_inc\": %f\n", cinc );
+            return 0;
+        }
+    }
+    else
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: missing default option data \"check_inc\": %f\n", ceps );
+        return 0;
+    }
+
+
+    if ( crgOptionGetDouble( &crgData->options, dCrgCpOptionCheckTol, &ctol ) )
+    {
+        if ( ctol < ceps * cinc || ctol > 0.5 * cinc )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"check_tol\": %d", ctol );
+            return 0;
+        }
+    }
+    else
+    {
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: missing default option data \"check_tol\": %f\n", ceps );
+        return 0;
+    }
+
+
+    return 1;
+}
+
+int
+crgCheckMods( CrgDataStruct* crgData )
+{
+    int modAsInt, byoff, byref;
+    double modAsDouble;
+
+    /* --- check singular value ranges */
+
+    /* CRG scaling */
+    if ( crgOptionGetDouble( &crgData->modifiers, dCrgModScaleLength, &modAsDouble ) )
+    {
+        if ( modAsDouble <= 0 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: illegal modifier \"scale_length\": %f\n", modAsDouble );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetDouble( &crgData->modifiers, dCrgModScaleWidth, &modAsDouble ) )
+    {
+        if ( modAsDouble <= 0 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: illegal modifier \"scale_width\": %f\n", modAsDouble );
+            return 0;
+        }
+    }
+
+    /* CRG elevation grid NaN handling */
+    if ( crgOptionGetInt( &crgData->modifiers, dCrgModGridNaNMode, &modAsInt ) )
+    {
+        if ( modAsInt < 0 || modAsInt > 2 )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal modifier \"grid_nan_mode\": %d", modAsInt );
+            return 0;
+        }
+    }
+
+    if ( crgOptionGetDouble( &crgData->modifiers, dCrgModGridNaNOffset, &modAsDouble ) )
+    {
+        if ( !crgOptionGetInt( &crgData->modifiers, dCrgModGridNaNMode, &modAsInt ) )
+        {
+            crgOptionSetInt( &crgData->modifiers, dCrgModGridNaNMode, dCrgGridNaNKeepLast ); /* default */
+        }
+        if ( modAsInt == dCrgGridNaNKeep ) /* check for useless offset setting */
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: inconsistent grid_nan_mod=%d with grid_nan_offset=%f\n", modAsInt, modAsDouble );
+            return 0;
+        }
+    }
+
+    /* CRG re-positioning: refline by offset (default: "by refpoint") */
+    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetPhi );
+    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetX );
+    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetY );
+    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetZ );
+
+    if( byoff )
+    {
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetPhi ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefLineOffsetPhi, 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetX ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefLineOffsetX, 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetY ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefLineOffsetY, 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetZ ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefLineOffsetZ, 0. );
+    }
+
+    /* CRG re-positioning: refline by refpoint (overwrites "by offset") */
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointX );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointY );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointZ );
+    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointPhi );
+
+    if( byref && byoff )
+    {
+        crgOptionRemove( &crgData->modifiers, dCrgModRefLineOffsetPhi );
+        crgOptionRemove( &crgData->modifiers, dCrgModRefLineOffsetX );
+        crgOptionRemove( &crgData->modifiers, dCrgModRefLineOffsetY );
+        crgOptionRemove( &crgData->modifiers, dCrgModRefLineOffsetZ );
+        crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: CRG re-positioning modifiers: refline \"by refpoint\" overwrites \"by offset\" setting\n");
+        return 0;
+    }
+
+    if ( byref )
+    {
+        if ( crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac ) && crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU ) )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: only one of \"refpoint_u_fraction\" and \"refpoint_u\" may be defined\n");
+            return 0;
+        }
+        if ( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac ) && !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU ) )
+        {
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointUFrac, 0. );
+        }
+        if ( crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac ) && crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV ) )
+        {
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckMods: only one of \"refpoint_v_fraction\" and \"refpoint_v\" may be defined\n");
+            return 0;
+        }
+        if ( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac ) && !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV ) )
+        {
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointVFrac, 0. );
+        }
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUOffset ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointUOffset , 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVOffset ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointVOffset , 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointX ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointX , 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointY ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointY , 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointZ ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointZ , 0. );
+        if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointPhi ) )
+            crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointPhi , 0. );
+    }
+
+    return 1;
+}
+
 static int
 readDouble( char* dataPtr, double* tgt )
 {
@@ -2428,7 +2741,7 @@ readDouble( char* dataPtr, double* tgt )
     if ( !dataPtr || !tgt )
         return 0;
     
-    if ( mBigEndian )
+    if ( mCrgBigEndian )
         memcpy( valPtr, dataPtr, 8 * sizeof( char ) );
     else
         for ( j = 0; j < 8; j++ )
@@ -2437,7 +2750,7 @@ readDouble( char* dataPtr, double* tgt )
     /* check for NaN and make sure it can be identified later-on */
     memcpy( compValue, tgt, sizeof( tgt ) );
     
-    if ( mBigEndian )
+    if ( mCrgBigEndian )
     {
         if ( compValue[0] >= 0x7ff80000 )
             return -1;
@@ -2458,7 +2771,7 @@ readFloat( char* dataPtr, float* tgt )
     if ( !dataPtr || !valPtr )
         return 0;
     
-    if ( mBigEndian )
+    if ( mCrgBigEndian )
         memcpy( valPtr, dataPtr, 4 * sizeof( char ) );
     else
         for ( j = 0; j < 4; j++ )
@@ -2547,7 +2860,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
     else
     {
         crgMsgPrint( dCrgMsgLevelInfo, "crgLoaderAddFile: reading big endian encoding\n" );
-        mBigEndian = 1;
+        mCrgBigEndian = 1;
     }   
      
     /* --- get a new data structure and initialize it --- */

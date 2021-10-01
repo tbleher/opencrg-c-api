@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  26.07.2013 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2013 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -74,12 +74,14 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     double y3y1;
     double y2yy;
     double dProd;
+    double t_dProd;
     double ta;
     double tb;
     double du;
     double dist2Min = 0;
     int    indexP1;
     int    i;
+    int    lastIdx;
     
     if ( !cp )
         return 0;
@@ -93,12 +95,12 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     *v    = cp->v;
     
     crgData = cp->crgData;
-    
+
     if ( !crgData )
         return 1;
     else if ( !( crgData->channelX.info.valid ) )
         return 1;
-        
+
     /* --- check for the information in the history  --- */
     /* --- look for search start interval in history --- */
 
@@ -113,8 +115,8 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
             cp->history.stat.noIter++;
 #endif
 
-        dx = cp->history.entry[i].x - cp->x;
-        dy = cp->history.entry[i].y - cp->y;
+        dx = cp->x - cp->history.entry[i].x;
+        dy = cp->y - cp->history.entry[i].y;
         
         dist2 = dx * dx + dy * dy;
         
@@ -177,7 +179,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
                     i += 10;
                 else if ( i < crgData->channelX.info.size - 1 )
                     i = crgData->channelX.info.size - 1;
-                else 
+                else
                     break;
             }
             else if ( i < crgData->channelX.info.size - 10 )
@@ -197,7 +199,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     if ( cp->history.stat.active )
         cp->history.stat.noTotalQueries++;
 #endif
-    
+
 /* -- found the start? --- */
     if ( indexMin < 1 )
         indexMin = 1;
@@ -210,18 +212,12 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
      *  P3: iu3 = iu + 1: (X3, Y3)
      *  P :               (X , Y ) (current input from subroutine call)
      */
+     t_dProd = 0.0;
+
      for(;;)
      {
-        indexP1 = indexMin + 1;
-         
-        if ( indexP1 >= crgData->channelX.info.size )
-        {
-            if ( crgData->util.uIsClosed )
-                indexP1 = 0;
-            else
-                indexP1 = crgData->channelX.info.size - 1;
-        }
-        
+        indexP1 = (indexMin+1 < crgData->channelX.info.size)? indexMin+1: crgData->channelX.info.size-1;
+                
         /*
         *  evaluate dot product (P -P2).(P3-P1):
         *  - unnormalized projection of (P -P2) on (P3-P1)
@@ -250,6 +246,17 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
         {
              if ( indexMin < ( crgData->channelX.info.size - 1 ) )
                  indexMin++;
+             else if(crgData->util.uIsClosed)
+             {
+                t_dProd = (cp->x - crgData->channelX.data[0])
+                                * (crgData->channelX.data[1] - crgData->channelX.data[0])
+                                + (cp->y - crgData->channelY.data[0])
+                                * (crgData->channelY.data[1] - crgData->channelY.data[0]);
+
+                if (t_dProd <= 0.0) break;  /* crgData->channelU.data[0] may be closer */
+
+                indexMin = 1;
+             }
              else
                  break;
         }
@@ -306,8 +313,23 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
         {
             if ( indexMin > 1 )
                 indexMin--;
-             else
-                 break;
+            else if (crgData->util.uIsClosed)
+            {
+
+               if(t_dProd != 0.0) break; /* last reference point already checked */
+
+               lastIdx = crgData->channelX.info.size-1;
+               t_dProd = (cp->x - crgData->channelX.data[lastIdx])
+                               * (crgData->channelX.data[lastIdx] - crgData->channelX.data[lastIdx-1])
+                               + (cp->y - crgData->channelY.data[lastIdx])
+                               * (crgData->channelY.data[lastIdx] - crgData->channelY.data[lastIdx-1]);
+
+               if (t_dProd >= 0.0) break;  /* crgData->channelU.data[end] may be closer */
+
+               indexMin = lastIdx;
+            }
+            else
+                break;
         }
         else
             break;
@@ -365,7 +387,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     /* --- and reference line is closed, then check whether point             --- */
     /* --- is within extended section of reference line and correct           --- */
     /* --- co-ordinates as required                                           --- */
-    if ( crgData->util.uIsClosed )
+    if ( crgOptionHasValueInt( &( cp->options ), dCrgRefLineCloseTrack, 1 ) && crgData->util.uIsClosed )
     {
         if ( cp->u > crgData->util.uCloseMax )
         {

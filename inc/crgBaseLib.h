@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	20.10.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  08.04.2014 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2014 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -61,8 +61,11 @@
                                                  /*            of reference line                                                          [-] */
 #define dCrgCpOptionRefLineClose        11       /* [double],  near criteria for finding a point on the refline                           [m] */
 #define dCrgCpOptionRefLineFar          12       /* [double],  far criteria for finding a point on the refline                            [m] */
-#define dCrgCpOptionRefLineContinue     13       /* [int],     reference line continuation mode outside primary u range      [dCrgRefLinexxx] */
-#define dCrgCpOptionWarnMsgs            14       /* [int],     maximum number of warning messages                                         [-] */
+#define dCrgCpOptionRefLineContinue     13       /* [integer], reference line continuation mode outside primary u range      [dCrgRefLinexxx] */
+#define dCrgCpOptionWarnMsgs            14       /* [integer], maximum number of warning messages                                         [-] */
+#define dCrgCpOptionCheckEps            15       /* [double],  expected min. accuracy                                                     [m] */
+#define dCrgCpOptionCheckInc            16       /* [double],  expected min. increment                                                    [m] */
+#define dCrgCpOptionCheckTol            17       /* [double],  expected abs. tolerance                                                    [m] */
 
 /**
 * Mode definitions for option: dCrgCpOptionBorderModeU
@@ -112,6 +115,8 @@
 #define dCrgModRefLineOffsetY      40     /* [double], offset y applied on reference line                             [m] */
 #define dCrgModRefLineOffsetZ      41     /* [double], offset z applied on reference line                             [m] */
 #define dCrgModRefLineOffsetPhi    42     /* [double], rotation applied on reference line                           [rad] */
+#define dCrgModRefLineRotCenterX   43     /* [double], rotation center on reference line                              [m] */
+#define dCrgModRefLineRotCenterY   44     /* [double], rotation center on reference line                              [m] */
 
 /**
 * define size of option / modifier structure for contact point and data set structure
@@ -327,6 +332,13 @@
     extern int crgMsgIsPrintable( int level );
     
 /* ====== METHODS in crgLoader.c ====== */
+    /**
+    * check CRG data for consistency and accuracy
+    * @param  dataSetId    identifier of the applicable dataset
+    * @return true         if crgData is valid
+    */
+    extern int crgCheck( int dataSetId );
+
     /**
     * method for loading CRG data from an existing IPL-formatted file
     * @param filename   full filename of the CRG input file including path

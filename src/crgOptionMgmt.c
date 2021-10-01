@@ -6,7 +6,7 @@
  *  first edit:	31.03.2009 by M. Dupuis @ VIRES GmbH
  *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
  * ===================================================
-    Copyright 2011 VIRES Simulationstechnologie GmbH
+    Copyright 2013 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -93,7 +93,19 @@ crgOptionGetName( unsigned int optionId )
             break;
 
         case dCrgCpOptionRefLineContinue:
-            return "refline coninuation mode";
+            return "refline continuation mode";
+            break;
+
+        case dCrgCpOptionCheckEps:
+            return "expected min. accuracy";
+            break;
+
+        case dCrgCpOptionCheckInc:
+            return "expected min. increment";
+            break;
+
+        case dCrgCpOptionCheckTol:
+            return "expected abs. tolerance";
             break;
 
         case dCrgModScaleZ:
@@ -168,6 +180,18 @@ crgOptionGetName( unsigned int optionId )
             return "reference point phi";
             break;
 
+        case dCrgModRefLineRotCenterX:
+            return "modifier reference line rotation center x";
+            break;
+
+        case dCrgModRefLineRotCenterY:
+            return "modifier reference line rotation center y";
+            break;
+
+        case dCrgModRefLineOffsetPhi:
+            return "modifier reference line offset phi";
+            break;
+
         case dCrgModRefLineOffsetX:
             return "modifier reference line offset x";
             break;
@@ -178,10 +202,6 @@ crgOptionGetName( unsigned int optionId )
 
         case dCrgModRefLineOffsetZ:
             return "modifier reference line offset z";
-            break;
-
-        case dCrgModRefLineOffsetPhi:
-            return "modifier reference line offset phi";
             break;
 
         default:
@@ -206,6 +226,9 @@ crgOptionGetType( unsigned int optionId )
         case dCrgCpOptionRefLineSearchUFrac:
         case dCrgCpOptionRefLineClose:
         case dCrgCpOptionRefLineFar:
+        case dCrgCpOptionCheckEps:
+        case dCrgCpOptionCheckInc:
+        case dCrgCpOptionCheckTol:
             return dCrgOptionDataTypeDouble;
             break;
 
@@ -226,10 +249,12 @@ crgOptionGetType( unsigned int optionId )
         case dCrgModRefPointY:
         case dCrgModRefPointZ:
         case dCrgModRefPointPhi:
+        case dCrgModRefLineRotCenterX:
+        case dCrgModRefLineRotCenterY:
+        case dCrgModRefLineOffsetPhi:
         case dCrgModRefLineOffsetX:
         case dCrgModRefLineOffsetY:
         case dCrgModRefLineOffsetZ:
-        case dCrgModRefLineOffsetPhi:
             return dCrgOptionDataTypeDouble;
             break;
             
@@ -472,6 +497,10 @@ crgOptionSetDefaultOptions( CrgOptionsStruct* optionList )
     crgOptionSetInt( optionList, dCrgCpOptionCurvMode,    dCrgCurvLateral      );
     crgOptionSetInt( optionList, dCrgCpOptionBorderModeU, dCrgBorderModeExKeep );
     crgOptionSetInt( optionList, dCrgCpOptionBorderModeV, dCrgBorderModeExKeep );
+
+    crgOptionSetDouble( optionList, dCrgCpOptionCheckEps, 1e-6 );
+    crgOptionSetDouble( optionList, dCrgCpOptionCheckInc, 1e-3 );
+    crgOptionSetDouble( optionList, dCrgCpOptionCheckTol, 1e-4 ); /* default: 0.1 * dCrgCpOptionCheckInc */
 }
 
 void

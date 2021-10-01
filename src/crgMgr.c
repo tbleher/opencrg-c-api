@@ -4,9 +4,9 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  04.01.2012 by H. Helmich @ VIRES GmbH
+ *  last mod.:  28.05.2013 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2012 VIRES Simulationstechnologie GmbH
+    Copyright 2013 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -694,7 +694,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.0.5 - RC1, January 04, 2012";
+    return "OpenCRG C-API release 1.0.6, March 24, 2014";
 }
 
 int
@@ -708,7 +708,7 @@ crgIsNan( double *dValue )
     /* --- assign the value that is to be checked --- */
     memcpy( &checkVal.dVal, dValue, sizeof( double ) );
     
-    if ( mBigEndian )
+    if ( mCrgBigEndian )
         return ( checkVal.iVal[0] & 0x7ff80000 ) >= 0x7ff80000;
     
     return ( checkVal.iVal[1] & 0x7ff80000 ) >= 0x7ff80000;
@@ -722,7 +722,7 @@ crgSetNan( double* dValue )
     if ( !dValue )
         return;
     
-    if ( mBigEndian )
+    if ( mCrgBigEndian )
     {
         int myNan[2] = { 0x7ff80000, 0x00000000 };
         memcpy( dValue, myNan, sizeof( double ) );
@@ -821,13 +821,13 @@ static void
 crgDataApplyTransformations( CrgDataStruct *crgData )
 {
     /* --- store the transformation in the following variables --- */
-    double fromXYZ[3] = { 0.0, 0.0, 0.0 };
-    double toXYZ[3]   = { 0.0, 0.0, 0.0 };
-    double rotAngle   = 0.0;
-    double fromPhi    = 0.0;
-    double fromCurv   = 0.0;
-    int    applyXform = 0;
-    int    retVal;
+    double fromXYZ[3]    = { 0.0, 0.0, 0.0 };
+    double toXYZ[3]      = { 0.0, 0.0, 0.0 };
+    double rotCenter[2]  = { 0.0, 0.0 };
+    double rotAngle      = 0.0;
+    double fromPhi       = 0.0;
+    double fromCurv      = 0.0;
+    int    applyXform    = 0;
     
     double uPos   = 0.0;
     double vPos   = 0.0;
@@ -914,52 +914,79 @@ crgDataApplyTransformations( CrgDataStruct *crgData )
         
         /* correct rotation angle */
         rotAngle -= fromPhi;
+
+        rotCenter[0] = fromXYZ[0];
+        rotCenter[1] = fromXYZ[1];
     }
         
     /* --- if transformation is not defined by reference point, then check for relative offsets --- */
     if ( !applyXform )
     {
         int transform = 0;
-        
-        /* --- transform data to a different location using a plain offset? --- */
-        /* make this code a bit more robust in terms of optimization */
-        transform = crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetX,   &( toXYZ[0] ) );
-        retVal    = crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetY,   &( toXYZ[1] ) );
-        transform = retVal || transform;
-        retVal    = crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetZ,   &( toXYZ[2] ) );
-        transform = retVal || transform;
-        retVal    = crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetPhi, &rotAngle   );
-        transform = retVal || transform;
-        
+
+
         /* --- per default, transformation point is begin of reference line --- */
         fromXYZ[0] = crgData->channelX.info.first;
         fromXYZ[1] = crgData->channelY.info.first;
-        
+
+        /* --- default: rotate around xbeg, ybeg */
+        rotCenter[0] = fromXYZ[0];
+        rotCenter[1] = fromXYZ[1];
+
+        crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineRotCenterX, &( rotCenter[0] ) );
+        crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineRotCenterY, &( rotCenter[1] ) );
+
+        /* --- transform data to a different location using a plain offset? --- */
+        /* make this code a bit more robust in terms of optimization */
+        transform  = crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetX,    &( toXYZ[0] ) );
+        transform |= crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetY,    &( toXYZ[1] ) );
+        transform |= crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetZ,    &( toXYZ[2] ) );
+        transform |= crgOptionGetDouble( &( crgData->modifiers ), dCrgModRefLineOffsetPhi,  &rotAngle );
+
         crgDataEvaluv2z( crgData, NULL, 0.0, 0.0, &( fromXYZ[2] ) );
-        crgDataEvaluv2pk( crgData, NULL, crgData->channelU.info.first, 0.0, &( fromPhi ), &( fromCurv ) );
-        
+
         toXYZ[0] += fromXYZ[0];
         toXYZ[1] += fromXYZ[1];
         toXYZ[2] += fromXYZ[2];
-        /* rotAngle += fromPhi; */
-        
+
         /* reset the temporarily used values */
         fromPhi  = 0.0;
         fromCurv = 0.0;
-            
+
         /* --- is there already a need for applying a transformation? --- */
         applyXform = transform;
     }
-     
-    if ( applyXform )   /* temporarily disabled, for debugging only */
-        crgMsgPrint( dCrgMsgLevelDebug, "crgDataApplyTransformations: dx / dy / dz / dphi = %.6f / %.6f / %.6f / %.6f\n",
-                                      toXYZ[0] - fromXYZ[0], toXYZ[1] - fromXYZ[1], toXYZ[2] - fromXYZ[2],  rotAngle );
+
+   if ( applyXform )   /* temporarily disabled, for debugging only */
+        crgMsgPrint( dCrgMsgLevelDebug, "crgDataApplyTransformations: rotCx / rotCy / dphi / dx / dy / dz  = %.6f %.6f %.6f / %.6f / %.6f / %.6f\n",
+                     rotCenter[0], rotCenter[1] ,rotAngle, toXYZ[0] - fromXYZ[0], toXYZ[1] - fromXYZ[1], toXYZ[2] - fromXYZ[2] );
     
     if ( applyXform )
     {
         int i;
+
+        /* --- first rotate --- */
+        /* phi on center line */
+
+        crgMsgPrint( dCrgMsgLevelDebug, "crgDataApplyTransformations: rotating data by %.3lf deg around %.3f / %.3f fromPhi = %.3lf \n", 
+                rotAngle * 180 / 3.14159265, rotCenter[0], rotCenter[1], fromPhi * 180 / 3.14159265 );
         
-        /* --- first: translation --- */
+        crgDataOffsetChannel( &( crgData->channelPhi ), rotAngle );
+
+        /* --- compute sine and cosine of directoin at either end of reference line */
+        crgData->util.phiFirstSin = sin( crgData->channelPhi.info.first );
+        crgData->util.phiFirstCos = cos( crgData->channelPhi.info.first );
+        crgData->util.phiLastSin  = sin( crgData->channelPhi.info.last  );
+        crgData->util.phiLastCos  = cos( crgData->channelPhi.info.last  );
+
+        /* x,y data of center line */
+        rotatePoint( &( crgData->channelX.info.first ), &( crgData->channelY.info.first ), rotCenter[0], rotCenter[1], rotAngle );
+        rotatePoint( &( crgData->channelX.info.last ),  &( crgData->channelY.info.last ),  rotCenter [0], rotCenter [1], rotAngle );
+
+        for ( i = 0; i < crgData->channelX.info.size; i++ )
+            rotatePoint( &( crgData->channelX.data[i] ), &( crgData->channelY.data[i] ), rotCenter [0], rotCenter [1], rotAngle );
+
+        /* --- translation --- */
         crgDataOffsetChannel( &( crgData->channelX ), toXYZ[0] - fromXYZ[0] );
         crgDataOffsetChannel( &( crgData->channelY ), toXYZ[1] - fromXYZ[1] );
         
@@ -985,28 +1012,6 @@ crgDataApplyTransformations( CrgDataStruct *crgData )
                 crgData->channelZ[i].info.last  += toXYZ[2] - fromXYZ[2];
             }
         }
-        
-        /* --- now: rotation --- */
-        /* phi on center line */
-        
-        crgMsgPrint( dCrgMsgLevelDebug, "Marius: crgDataApplyTransformations: rotating data by %.3lf deg around %.3f / %.3f fromPhi = %.3lf \n", 
-                rotAngle * 180 / 3.14159265, toXYZ[0], toXYZ[1], fromPhi * 180 / 3.14159265 );
-        
-        crgDataOffsetChannel( &( crgData->channelPhi ), rotAngle );
-        
-        /* --- compute sine and cosine of directoin at either end of reference line */
-        crgData->util.phiFirstSin = sin( crgData->channelPhi.info.first );
-        crgData->util.phiFirstCos = cos( crgData->channelPhi.info.first );
-        crgData->util.phiLastSin  = sin( crgData->channelPhi.info.last  );
-        crgData->util.phiLastCos  = cos( crgData->channelPhi.info.last  );
-
-        
-        /* x,y data of center line */
-        rotatePoint( &( crgData->channelX.info.first ), &( crgData->channelY.info.first ), toXYZ[0], toXYZ[1], rotAngle );
-        rotatePoint( &( crgData->channelX.info.last ),  &( crgData->channelY.info.last ),  toXYZ[0], toXYZ[1], rotAngle );
-
-        for ( i = 0; i < crgData->channelX.info.size; i++ )
-            rotatePoint( &( crgData->channelX.data[i] ), &( crgData->channelY.data[i] ), toXYZ[0], toXYZ[1], rotAngle );
     }
 }
 
