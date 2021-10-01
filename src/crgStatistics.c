@@ -53,11 +53,11 @@ void crgCalcStatistics( CrgDataStruct *crgData )
     double cMin = 0.0;
     double val;
     double curv = 0.0;
-    int    i;
-    int    j;
-    int    maxIndex;
-    int    nPtsF = 0;
-    int    nPtsL = 0;
+    size_t i;
+    size_t j;
+    size_t maxIndex;
+    size_t nPtsF = 0;
+    size_t nPtsL = 0;
     
     if ( !crgData )
         return;
@@ -93,7 +93,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
             }
         }
         else
-            crgMsgPrint( dCrgMsgLevelWarn, "        v-channel with index %d has no data!\n", i );
+            crgMsgPrint( dCrgMsgLevelWarn, "        v-channel with index %ld has no data!\n", i );
     }
     
     if ( nPtsF )
@@ -219,8 +219,8 @@ void crgCalcStatistics( CrgDataStruct *crgData )
 void
 crgPrintElevData( CrgDataStruct *crgData )
 {
-    int    i;
-    int    j;
+    size_t i;
+    size_t j;
     
     if ( !crgData )
         return;
@@ -230,7 +230,7 @@ crgPrintElevData( CrgDataStruct *crgData )
     
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
-        fprintf( stderr, "channel %d at offset %.3f\n", i, crgData->channelV.data[i] );
+        fprintf( stderr, "channel %ld at offset %.3f\n", i, crgData->channelV.data[i] );
         for ( j = 0; j < crgData->channelZ[i].info.size; j++ )
             fprintf( stderr, "%10.5f ", crgData->channelZ[i].data[j] );
         fprintf( stderr, "\n" );

@@ -50,7 +50,7 @@ crgEvalxy2uv( int cpId, double x, double y, double* u, double* v )
 int 
 crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, double* v )
 {
-    int indexMin = -1;
+    size_t indexMin = -1;
     int useHist  =  0;
     CrgDataStruct* crgData;
     double x0;
@@ -79,9 +79,9 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     double tb;
     double du;
     double dist2Min = 0;
-    int    indexP1;
-    int    i;
-    int    lastIdx;
+    size_t indexP1;
+    size_t i;
+    size_t lastIdx;
     
     if ( !cp )
         return 0;

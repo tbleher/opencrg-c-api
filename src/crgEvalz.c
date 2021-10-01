@@ -72,9 +72,9 @@ int crgEvaluv2zPtr( CrgContactPointStruct *cp, double u, double v, double* z )
 int
 crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u, double v, double* z )
 {
-    int    indexU         = 0;
-    int    indexV         = 0;
-    int    calcIndex      = 1;
+    size_t indexU         = 0;
+    size_t indexV         = 0;
+    size_t calcIndex      = 1;
     int    inCoreAreaU    = 1; /* indicates u position is in or out of the core area */
     int    inCoreAreaV    = 1; /* indicates u position is in or out of the core area */
     int    calcValue      = 1;
@@ -326,8 +326,8 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
     else
     /* find v interval in variably spaced v axis */
     {
-        int    indexCtr;
-        int    index0     = crgData->channelV.info.size - 1;
+        size_t indexCtr;
+        size_t index0     = crgData->channelV.info.size - 1;
         double vPos       = v;
         
         indexV = 0;
@@ -654,7 +654,7 @@ int
 crgDataEvalu2Refz( CrgDataStruct *crgData, double u, double* z )
 {
     double fracU;
-    int    index;
+    size_t index;
     
     if ( !crgData )
         return 0;

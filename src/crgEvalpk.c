@@ -74,7 +74,7 @@ crgEvalxy2pk( int cpId, double x, double y, double* phi, double* curv )
 int
 crgDataEvaluv2pk( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u, double v, double* phi, double* curv )
 {
-    int    indexU = 0;
+    size_t indexU = 0;
     int    nU;
     double fracU;
 

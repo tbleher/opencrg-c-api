@@ -91,9 +91,9 @@ typedef struct
     char*   fileBuffer;   /* buffer for CRG file data                       [-] */
     double* recordBuffer; /* buffer for a single data record (n channels)   [-] */
     char*   dataSection;  /* pointer to the data section                    [-] */
-    int     dataSize;     /* size of the data section                    [byte] */
+    size_t  dataSize;     /* size of the data section                    [byte] */
     int     defMask;      /* mask of defined data in header section         [-] */
-    int     recordSize;   /* size of a single data record                [byte] */
+    size_t  recordSize;   /* size of a single data record                [byte] */
     int     sectionType;  /* temporarily used while reading file            [-] */
 } CrgAdminStruct;
 
@@ -126,7 +126,7 @@ typedef struct
     char    singlePrec;  /* flag whether channel is single precision        [0/1] */
     char    spare;       /* a spare for future use                            [-] */
     int     index;       /* index of the channel                              [-] */
-    int     size;        /* number of entries in the channel                  [-] */
+    size_t  size;        /* number of entries in the channel                  [-] */
     double  first;       /* first (minimum) value in this channel             [m] */
     double  last;        /* last (maximum) value in this channel              [m] */
     double  inc;         /* increment between two values in this channel      [m] */
@@ -244,7 +244,7 @@ typedef struct
 typedef struct
 {
     CrgAdminStruct       admin;                       /* administrative data                                                              */
-    int noChannels;                                   /* total number of available channels in crg data                               [-] */
+    int                  noChannels;                  /* total number of available channels in crg data                               [-] */
     CrgChannelStruct     channelV;                    /* channels holding v data                                                          */
     CrgChannelStruct     channelX;                    /* channel holding x data of reference line                                         */
     CrgChannelStruct     channelY;                    /* channel holding y data of reference line                                         */

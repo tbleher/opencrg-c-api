@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	20.10.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  08.04.2014 by H. Helmich @ VIRES GmbH
+ *  last mod.:  03.04.2015 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2014 VIRES Simulationstechnologie GmbH
+    Copyright 2015 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -192,6 +192,16 @@
     */
     extern int crgDataSetGetIncrements( int dataSetId, double *uInc, double *vInc );
    
+    /**
+    * get closed track utility data
+    * @param dataSetId    identifier of the applicable dataset
+    * @param uIsClosed    return remember whether reference line can be closed
+    * @param uCloseMin    return minimum u of closed reference line (NaN if uIsClosed == 0)
+    * @param uCloseMax    return maximum u of closed reference line (NaN if uIsClosed == 0)
+    * @return 1 upon success, otherwise 0
+    */
+    extern int crgDataSetGetUtilityDataClosedTrack( const int dataSetId, int *uIsClosed, double *uCloseMin, double *uCloseMax );
+
     /**
     * set/add an integer value modifier to be applied to the data set
     * CRG data using the indicated data point

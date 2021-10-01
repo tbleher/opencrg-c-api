@@ -4,9 +4,9 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  28.05.2013 by H. Helmich @ VIRES GmbH
+ *  last mod.:  31.07.2015 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2015 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ static void rotatePoint( double* x, double* y, double ctrX, double ctrY, double 
 int
 crgDataSetRelease( int dataSet )
 {
-    int i;
+    size_t i;
     
     CrgDataStruct* crgData = crgDataSetAccess( dataSet );
     
@@ -222,7 +222,7 @@ crgDataPrintHeader( int dataSetId )
 void
 crgDataPrintChannelInfo( int dataSetId )
 {
-    int i;
+    size_t i;
     CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
     
     if ( !crgData )
@@ -230,17 +230,17 @@ crgDataPrintChannelInfo( int dataSetId )
   
     crgMsgPrint( dCrgMsgLevelNotice, "crgDataPrintChannelInfo: overview of channel information\n"    );
     crgMsgPrint( dCrgMsgLevelNotice, "    total number of channels  = %4d\n", crgData->noChannels    );
-    crgMsgPrint( dCrgMsgLevelNotice, "    number of v channels      = %4d\n", crgData->channelV.info.size );
+    crgMsgPrint( dCrgMsgLevelNotice, "    number of v channels      = %4ld\n", crgData->channelV.info.size );
     
     for ( i = 0; i < crgData->channelV.info.size; ++i )
-        crgMsgPrint( dCrgMsgLevelNotice, "    v channel[%4d].pos   = %.4f\n", i, crgData->channelV.data[i] );
+        crgMsgPrint( dCrgMsgLevelNotice, "    v channel[%4ld].pos   = %.4f\n", i, crgData->channelV.data[i] );
     
-    crgMsgPrint( dCrgMsgLevelNotice, "    number of z channels      = %4d\n", crgData->channelV.info.size );
+    crgMsgPrint( dCrgMsgLevelNotice, "    number of z channels      = %4ld\n", crgData->channelV.info.size );
     
     for ( i = 0; i < crgData->channelV.info.size; ++i )
     {
-        crgMsgPrint( dCrgMsgLevelNotice, "    z channel[%4d].info.index = %4d\n",  i, crgData->channelZ[i].info.index );
-        crgMsgPrint( dCrgMsgLevelDebug,  "    z channel[%4d].info.size  = %4d\n",  i, crgData->channelZ[i].info.size );
+        crgMsgPrint( dCrgMsgLevelNotice, "    z channel[%4ld].info.index = %4d\n",  i, crgData->channelZ[i].info.index );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    z channel[%4ld].info.size  = %4ld\n",  i, crgData->channelZ[i].info.size );
     }
     
     crgMsgPrint( dCrgMsgLevelNotice, "additional channels:\n" );
@@ -248,32 +248,32 @@ crgDataPrintChannelInfo( int dataSetId )
     if ( crgData->channelX.info.defined )
         crgMsgPrint( dCrgMsgLevelNotice, "    channelX.info.index   = %d\n", crgData->channelX.info.index );
     if ( crgData->channelX.info.valid )            
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelX.info.size    = %d\n", crgData->channelX.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelX.info.size    = %ld\n", crgData->channelX.info.size  );
                                               
     if ( crgData->channelY.info.defined )          
         crgMsgPrint( dCrgMsgLevelNotice, "    channelY.info.index   = %d\n", crgData->channelY.info.index );
     if ( crgData->channelY.info.valid )            
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelY.info.size    = %d\n", crgData->channelY.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelY.info.size    = %ld\n", crgData->channelY.info.size  );
                                               
     if ( crgData->channelU.info.defined )                                                     
         crgMsgPrint( dCrgMsgLevelNotice, "    channelU.info.index   = %d\n", crgData->channelU.info.index );
     if ( crgData->channelU.info.valid )                                                       
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelU.info.size    = %d\n", crgData->channelU.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelU.info.size    = %ld\n", crgData->channelU.info.size  );
                                               
     if ( crgData->channelPhi.info.defined )                                                     
         crgMsgPrint( dCrgMsgLevelNotice, "    channelPhi.info.index = %d\n", crgData->channelPhi.info.index );
     if ( crgData->channelPhi.info.valid )                                                     
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelPhi.info.size  = %d\n", crgData->channelPhi.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelPhi.info.size  = %ld\n", crgData->channelPhi.info.size  );
                                               
     if ( crgData->channelSlope.info.defined )                                                     
         crgMsgPrint( dCrgMsgLevelNotice, "    channelSlope.info.index = %d\n", crgData->channelSlope.info.index );
     if ( crgData->channelSlope.info.valid )                                                     
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelSlope.info.size  = %d\n", crgData->channelSlope.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelSlope.info.size  = %ld\n", crgData->channelSlope.info.size  );
                                               
     if ( crgData->channelBank.info.defined )                                                     
         crgMsgPrint( dCrgMsgLevelNotice, "    channelBank.info.index = %d\n", crgData->channelBank.info.index );
     if ( crgData->channelBank.info.valid )                                                     
-        crgMsgPrint( dCrgMsgLevelDebug,  "    channelBank.info.size  = %d\n", crgData->channelBank.info.size  );
+        crgMsgPrint( dCrgMsgLevelDebug,  "    channelBank.info.size  = %ld\n", crgData->channelBank.info.size  );
 
     crgMsgPrint( dCrgMsgLevelNotice, "crgDataPrintChannelInfo: end of channel overview\n" );
 }
@@ -281,7 +281,7 @@ crgDataPrintChannelInfo( int dataSetId )
 void
 crgDataPrintRoadInfo( int dataSetId )
 {
-    int i;
+    size_t i;
     CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
     
     if ( !crgData )
@@ -290,7 +290,7 @@ crgDataPrintRoadInfo( int dataSetId )
     crgMsgPrint( dCrgMsgLevelNotice, "crgDataPrintRoadInfo: Summary of crg basic information\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "                      length of road [m]:          %10.4f\n", crgData->channelU.info.last - crgData->channelU.info.first );
     crgMsgPrint( dCrgMsgLevelNotice, "                      cross section increment [m]: %10.4f\n", crgData->channelU.info.inc );
-    crgMsgPrint( dCrgMsgLevelNotice, "                      number of cross sections:       %d\n",  crgData->channelU.info.size );
+    crgMsgPrint( dCrgMsgLevelNotice, "                      number of cross sections:       %ld\n",  crgData->channelU.info.size );
     
     crgMsgPrint( dCrgMsgLevelNotice, "                      width of crg road[m]:        %10.4f\n", crgData->channelV.info.last - crgData->channelV.info.first );
     crgMsgPrint( dCrgMsgLevelNotice, "                      width right of refline [m]:  %10.4f\n", crgData->channelV.info.first < 0.0 ?  crgData->channelV.info.first : 0.0 );
@@ -299,7 +299,7 @@ crgDataPrintRoadInfo( int dataSetId )
     for ( i = 0; i < crgData->channelV.info.size; ++i )
         crgMsgPrint( dCrgMsgLevelNotice, "                      long section at [m]:         %10.4f\n", crgData->channelV.data[i]   );
     
-    crgMsgPrint( dCrgMsgLevelNotice, "                      number of v channels:         %4d\n", crgData->channelV.info.size );
+    crgMsgPrint( dCrgMsgLevelNotice, "                      number of v channels:         %4ld\n", crgData->channelV.info.size );
 }
 
 int
@@ -371,6 +371,33 @@ crgDataSetGetIncrements( int dataSetId, double *uInc, double *vInc )
     *uInc = crgData->channelU.info.inc;
     *vInc = crgData->channelV.info.inc;
     
+    return 1;
+}
+
+int
+crgDataSetGetUtilityDataClosedTrack( const int dataSetId, int *uIsClosed, double *uCloseMin, double *uCloseMax )
+{
+    const CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
+
+    if ( !crgData )
+    {
+        crgMsgPrint( dCrgMsgLevelNotice, "crgDataSetGetUtilityDataClosedTrack: unknown data set %d\n", dataSetId );
+        return 0;
+    }
+
+    *uIsClosed = crgData->util.uIsClosed;
+
+    if( uIsClosed )
+    {
+        *uCloseMax = crgData->util.uCloseMax;
+        *uCloseMin = crgData->util.uCloseMin;
+    }
+    else
+    {
+        crgSetNan( uCloseMax );
+        crgSetNan( uCloseMin );
+    }
+
     return 1;
 }
 
@@ -477,7 +504,7 @@ crgDataSetModifiersApply( int dataSetId )
 {
     double dValue;
     int    iValue;
-    int    i;
+    size_t i;
     int    needPrepare = 0; /* per default, data doesn't have to be re-prepared */
     
     CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
@@ -551,7 +578,7 @@ crgDataSetModifiersApply( int dataSetId )
     {
         needPrepare = 1;
         {
-            int i;
+            size_t i;
             
             for ( i = 1; i < crgData->channelPhi.info.size; i++ )
                 crgData->channelPhi.data[i] = crgData->channelPhi.info.first + dValue * ( crgData->channelPhi.data[i] - crgData->channelPhi.info.first );
@@ -597,7 +624,7 @@ crgDataSetModifiersApply( int dataSetId )
 static void
 crgDataScaleChannel( CrgChannelBaseStruct* channel, double factor, int valuesOnly )
 {
-    int i;
+    size_t i;
     
     if ( !channel )
         return;
@@ -632,7 +659,7 @@ crgDataScaleChannel( CrgChannelBaseStruct* channel, double factor, int valuesOnl
 static void
 crgDataOffsetChannel( CrgChannelStruct* channel, double offset )
 {
-    int i;
+    size_t i;
     
     if ( !channel )
         return;
@@ -694,7 +721,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.0.6, March 24, 2014";
+    return "OpenCRG C-API release 1.1, July 31, 2015";
 }
 
 int
@@ -963,7 +990,7 @@ crgDataApplyTransformations( CrgDataStruct *crgData )
     
     if ( applyXform )
     {
-        int i;
+        size_t i;
 
         /* --- first rotate --- */
         /* phi on center line */

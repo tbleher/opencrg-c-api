@@ -4,9 +4,9 @@
  *  purpose:	contact point management routines
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.07.2013 by H. Helmich @ VIRES GmbH
+ *  last mod.:  03.04.2015 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2015 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -38,14 +38,34 @@ static int cpTableSize = 0;
 int 
 crgContactPointCreate( int dataSetId )
 {
+    int i;
+    int tgtId = -1;
+    int validIds = 0;
     CrgContactPointStruct* cp      = NULL;
     CrgDataStruct*         crgData = crgDataSetAccess( dataSetId );
-    
+
     if ( !crgData )
         return -1;
-    
-    cpTable = ( CrgContactPointStruct** ) crgRealloc( cpTable, ( cpTableSize + 1 ) * sizeof( CrgContactPointStruct* ) );
-    cp      = ( CrgContactPointStruct* )  crgCalloc( 1, sizeof( CrgContactPointStruct ) );
+
+    cp = ( CrgContactPointStruct* )  crgCalloc( 1, sizeof( CrgContactPointStruct ) );
+
+    /* --- get the maximum ID of existing data sets --- */
+    for ( i = 0; i < cpTableSize; i++ )
+    {
+        /* --- found some free space in list of contact points? --- */
+        if ( !cpTable[i] )
+            tgtId = i;
+        else
+            ++validIds;
+    }
+
+    /* --- any unused ID available or do we need to exend the data management list? --- */
+    if ( tgtId < 0 )
+    {
+        cpTable = ( CrgContactPointStruct** ) crgRealloc( cpTable, ( cpTableSize + 1 ) * sizeof( CrgContactPointStruct* ) );
+        tgtId   = cpTableSize;
+        cpTableSize++;
+    }
     
     if ( !cpTable || !cp )
     {
@@ -57,25 +77,24 @@ crgContactPointCreate( int dataSetId )
     crgContactPointPtrSetHistory( cp, dCrgHistoryStdSize );
 
     /* --- now register contact point in table --- */
-    cpTable[cpTableSize] = cp;
-    cp->crgData          = crgData;
-    cpTableSize++;
+    cpTable[tgtId] = cp;
+    cp->crgData    = crgData;
     
     /* --- allocate the memory for the options --- */
     crgOptionCreateList( &( cp->options ) );
     
     /* --- set the default options of the contact point --- */
-    crgContactPointSetDefaultOptions( cpTableSize - 1 );
+    crgContactPointSetDefaultOptions( tgtId );
     
     /* --- get the options defined in the data set --- */
     crgOptionCopyAll( &( cp->options ), &( crgData->options ) );
     
 #ifdef dCrgEnableDebug2
-    crgMsgPrint( dCrgMsgLevelNotice, "crgContactPointCreate: created contact point %d. Now have %d contact points.\n", cpTableSize - 1, cpTableSize );
+    crgMsgPrint( dCrgMsgLevelNotice, "crgContactPointCreate: created contact point %d. Now have %d contact points.\n", tgtId, validIds );
 #endif
    
    /* --- return the contact point ID, i.e. its position in the contact point table --- */
-    return cpTableSize - 1;
+    return tgtId;
 }
 
 int 
@@ -128,7 +147,7 @@ crgContactPointDeleteAll( int dataSetId )
     }
 
     /* --- now release any memory held for the contact point management --- */
-    if(dataSetId == -1)
+    if ( dataSetId == -1 )
     {
         crgFree( cpTable );
     
@@ -419,7 +438,7 @@ void
 crgContactPointPreloadHistoryU( CrgContactPointStruct *cp, double u )
 {
     double frac;
-    int    index;
+    size_t index;
     
     if ( !cp )
         return;

@@ -65,7 +65,7 @@ crgEvaluv2xy( int cpId, double u, double v, double* x, double* y )
 int
 crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u, double v, double* x, double* y )
 {
-    int    index = 0;
+    size_t index = 0;
     double frac;
     double p0[2];
     double p1[2];

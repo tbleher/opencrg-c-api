@@ -7,7 +7,7 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	31.10.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  08.04.2014 by H. Helmich @ VIRES GmbH
+ *  last mod.:  31.10.2014 by M. Dupuis @ VIRES GmbH
  * ===================================================
     Copyright 2014 VIRES Simulationstechnologie GmbH
 
@@ -558,7 +558,7 @@ clearChannel( CrgChannelBaseStruct *chan )
 static void
 clearChannels( CrgDataStruct *crgData )
 {
-    int i;
+    size_t i;
     
     if ( !crgData )
         return;
@@ -620,7 +620,7 @@ static int ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* 
         if ( crgStrBeginsWithStrNoCase( checkPtr, cbs->tag ) )
         {
             *opcode = cbs->opcode;
-            return cbs->func;
+            return ( int( * ) () ) ( cbs->func );
         }
         ++cbs;
     }
@@ -668,7 +668,7 @@ decodeHdrDouble( CrgDataStruct* crgData, const char* buffer, int opcode )
 {
     /* --- get the assignment character --- */
     double value;
-    char* bufPtr = strchr( buffer, '=' );
+    char* bufPtr = ( char* ) strchr( buffer, '=' );
     
     if ( !bufPtr )
         return 0;
@@ -756,7 +756,7 @@ static int
 decodeHdrOpMod( CrgDataStruct* crgData, const char* buffer, int opcode )
 {
     /* --- get the assignment character --- */
-    char* bufPtr = strchr( buffer, '=' );
+    char* bufPtr = ( char* ) strchr( buffer, '=' );
     
     /* --- is decoding of options and modifiers allowed at current level? --- */
     int optionEnabled   = ( mFileLevel == 0 ) || ( mOptLevel == mFileLevel );
@@ -970,7 +970,7 @@ decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
 {
     const char* bufPtr = buffer;
     const char* tmpPtr = NULL;
-    int    i;
+    size_t i;
     double chanPos;
     int insertData = 0;
     
@@ -1024,28 +1024,28 @@ decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
         crgData->channelV.data[crgData->channelV.info.size] = 0.0;
 
         /* --- insert the channel at the correct position of v and z data --- */
-        for ( i = crgData->channelV.info.size; i >= 0; --i )
+        for ( i = crgData->channelV.info.size+1; i > 0; --i )
         {
             /* --- make this code a bit more robust for optimization --- */
-            if ( !i )
+            if ( !(i-1) )
                 insertData = 1;
             else 
-                insertData = ( chanPos > crgData->channelV.data[i-1] );
+                insertData = ( chanPos > crgData->channelV.data[i-2] );
             
             if ( insertData )
             {
-                crgData->channelZ[i].info.defined = 1;
-                crgData->channelZ[i].info.valid   = 1;
-                crgData->channelZ[i].info.index   = crgData->noChannels;
-                crgData->channelZ[i].info.size    = crgData->channelU.info.size;
+                crgData->channelZ[i-1].info.defined = 1;
+                crgData->channelZ[i-1].info.valid   = 1;
+                crgData->channelZ[i-1].info.index   = crgData->noChannels;
+                crgData->channelZ[i-1].info.size    = crgData->channelU.info.size;
                 
-                crgData->channelV.data[i]    = chanPos;
+                crgData->channelV.data[i-1]    = chanPos;
                break;
             }
             else
             {
-                memcpy( &( crgData->channelZ[i] ), &( crgData->channelZ[i-1] ), sizeof( CrgChannelFStruct ) );
-                crgData->channelV.data[i] = crgData->channelV.data[i-1];
+                memcpy( &( crgData->channelZ[i-1] ), &( crgData->channelZ[i-2] ), sizeof( CrgChannelFStruct ) );
+                crgData->channelV.data[i-1] = crgData->channelV.data[i-2];
             }
         }
             
@@ -1199,7 +1199,7 @@ prepareFromPosDef( CrgDataStruct* crgData )
 {
     double dvMin = 0.0;
     double dvMax = 0.0;
-    int    i;
+    size_t i;
     
     if ( !crgData )
         return 0;
@@ -1242,7 +1242,7 @@ prepareFromPosDef( CrgDataStruct* crgData )
 static int
 prepareFromIndexDef( CrgDataStruct* crgData )
 {
-    int i;
+    size_t i;
     
     if ( !crgData )
         return 0;
@@ -1286,7 +1286,7 @@ calcRecordSize( CrgDataStruct* crgData )
     clearTmpData( crgData );
 
     if ( recordSize )
-        crgData->admin.recordBuffer = crgCalloc( crgData->noChannels, sizeof( double ) );
+        crgData->admin.recordBuffer = ( double* ) crgCalloc( crgData->noChannels, sizeof( double ) );
     
     crgData->admin.recordSize = recordSize;
     
@@ -1316,7 +1316,7 @@ getLineFromData( char* dstBuffer, int dstSize, char* srcBuffer, size_t srcSize )
     if ( xferSize > srcSize )
         xferSize = srcSize;
     
-    if ( xferSize >= dstSize )
+    if ( xferSize >= ( size_t ) dstSize )
         xferSize = dstSize - 1;
     
     memset( dstBuffer, 0, dstSize );
@@ -1402,11 +1402,12 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
                 else
                     decodeIncludeFile( crgData, buffer, dOpcodeIncludeItem );
                 break;
+                
             default:
                 if ( isComment( buffer ) )
                     break;
                 
-                if ( ( func = scanTagsForCallback( buffer, cbs, &opcode ) ) )
+                if ( ( func = ( int( * ) ( CrgDataStruct*, const char*, int ) ) ( scanTagsForCallback( buffer, cbs, &opcode ) ) ) )
                 {
                     if ( !func( crgData, buffer, opcode ) )
                         crgMsgPrint( dCrgMsgLevelWarn, "parseFileHeader: Error parsing line %d.\n", lineOfFile );
@@ -1420,16 +1421,17 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
                         /* --- therefore, calculate the maximum size which is to be read                                      --- */
                         if ( crgData->admin.dataFormat & dDataFormatBinary )
                         {
-                            *nBytesLeft = crgData->admin.recordSize * ( ( int ) ( ( crgData->channelU.info.last - crgData->channelU.info.first ) / crgData->channelU.info.inc + 0.5 ) + 1 );
+                            *nBytesLeft = crgData->admin.recordSize * ( ( size_t ) ( ( crgData->channelU.info.last - crgData->channelU.info.first ) / crgData->channelU.info.inc + 0.5 ) + 1 );
                             
                             if ( *nBytesLeft > srcBytesLeft )
-                                crgMsgPrint( dCrgMsgLevelWarn, "parseFileHeader: data section seems too small! Expecting %d bytes but only have %d bytes. Reading available data only.\n", 
+                                crgMsgPrint( dCrgMsgLevelWarn, "parseFileHeader: data section seems too small! Expecting %ld bytes but only have %ld bytes. Reading available data only.\n",
                                                                 *nBytesLeft, srcBytesLeft );
                         }
                         else
                             *nBytesLeft = srcBytesLeft;
                         
-                        crgMsgPrint( dCrgMsgLevelInfo, "parseFileHeader: (max.) nBytesLeft = %d, srcBytesLeft = %d\n", *nBytesLeft, srcBytesLeft );
+
+                        crgMsgPrint( dCrgMsgLevelInfo, "parseFileHeader: (max.) nBytesLeft = %ld, srcBytesLeft = %ld\n", *nBytesLeft, srcBytesLeft );
                         /* --- reading the data section is business of another method --- */
                         *dataPtr = srcPtr;
                         return 1;
@@ -1448,7 +1450,7 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
 static char* 
 getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft )
 {
-    int i;
+    size_t i;
     
     if ( !nBytesLeft )
         return NULL;
@@ -1456,7 +1458,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
     /* --- is the data format binary? --- */
     if ( dataFormat & dDataFormatBinary )
     {
-        if ( nBytesLeft >= recordSize )
+        if ( nBytesLeft >= ( size_t ) recordSize )
             return dataPtr + recordSize;
         
         return NULL;
@@ -1482,7 +1484,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
         for ( i = 0; i < noLines && dataPtr && nBytesLeft; i++ )
         {
             char *oldDataPtr = dataPtr;
-            char *termPtr    = ( nBytesLeft > 2 * recordSize ) ? ( dataPtr + 2 * recordSize ) : NULL;
+            char *termPtr    = ( nBytesLeft > ( size_t ) ( 2 * recordSize ) ) ? ( dataPtr + 2 * recordSize ) : NULL;
             char termChar    = 0;
             char *testPtr    = NULL;
             
@@ -1513,7 +1515,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
         return dataPtr;
     }
 
-    if ( nBytesLeft >= recordSize )
+    if ( nBytesLeft >= ( size_t ) recordSize )
         return dataPtr + recordSize;
     
     return NULL;
@@ -1543,7 +1545,7 @@ decodeRecord( CrgDataStruct* crgData, char* dataPtr, size_t nBytes )
     
     for ( i = 0; i < crgData->noChannels; i++ )
     {
-        if ( nBytesLeft < length )
+        if ( nBytesLeft < ( size_t ) length )
             return 0;
 
         if ( crgData->admin.dataFormat & dDataFormatASCII )
@@ -1554,7 +1556,7 @@ decodeRecord( CrgDataStruct* crgData, char* dataPtr, size_t nBytes )
                 nBytesLeft--;
                 dataPtr++;
                 
-                if ( nBytesLeft < length )
+                if ( nBytesLeft < ( size_t ) length )
                     return 0;
             }
             
@@ -1615,11 +1617,14 @@ decodeNextRecord( CrgDataStruct* crgData, char **dataPtr, size_t *nBytesLeft )
     *dataPtr     = recPtr;
     *nBytesLeft -= nBytesRead;
         
+    /* this cannot happen */
+    /*
     if ( *nBytesLeft < 0 )
     {
         crgMsgPrint( dCrgMsgLevelFatal, "decodeNextRecord: data access error.\n" );
         return 0;
     }
+    */
     return 1;
 }
 
@@ -1628,7 +1633,7 @@ parseCenterLine( CrgDataStruct* crgData, char *dataPtr, size_t nBytesLeft )
 {
     char   *recPtr      = dataPtr;        /* pointer to begin of record */
     size_t srcBytesLeft = nBytesLeft;
-    int    nRec = 0;
+    size_t nRec = 0;
     double uLast = 0.0;
     double duMin = 0.0;
     double duMax = 0.0;
@@ -1758,12 +1763,12 @@ parseCenterLine( CrgDataStruct* crgData, char *dataPtr, size_t nBytesLeft )
 static int
 allocateChannels( CrgDataStruct* crgData )
 {
-    int i;
+    size_t i;
     
     if ( !crgData )
         return 0;
     
-    crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: crgData->channelU.info.size = %d\n", crgData->channelU.info.size );
+    crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: crgData->channelU.info.size = %ld\n", crgData->channelU.info.size );
     
     /* --- the z channels --- */
     for( i = 0; i < crgData->channelV.info.size; i++ )
@@ -1771,28 +1776,28 @@ allocateChannels( CrgDataStruct* crgData )
         /* copy size information */
         crgData->channelZ[i].info.size = crgData->channelU.info.size;
         
-        if ( !( crgData->channelZ[i].data = crgCalloc( crgData->channelZ[i].info.size, sizeof( float ) ) ) )
+        if ( !( crgData->channelZ[i].data = ( float* ) crgCalloc( crgData->channelZ[i].info.size, sizeof( float ) ) ) )
             return 0;
     }
             
     /* --- print some debug information --- */
     for ( i = 0; i < crgData->channelV.info.size; i++ )
-        crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: channelZ[%d].info.index = %d, channelZ[%d].info.size = %d\n",
+        crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: channelZ[%ld].info.index = %ld, channelZ[%d].info.size = %ld\n",
                                          i, crgData->channelZ[i].info.index, i, crgData->channelZ[i].info.size );
     
     /* --- and the other ones --- */
     if ( crgData->channelX.info.size )
     {
-        if ( !( crgData->channelX.data = crgCalloc( crgData->channelX.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelX.data = ( double* ) crgCalloc( crgData->channelX.info.size, sizeof( double ) ) ) )
             return 0;
         
-        if ( !( crgData->channelY.data = crgCalloc( crgData->channelY.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelY.data = ( double* ) crgCalloc( crgData->channelY.info.size, sizeof( double ) ) ) )
             return 0;
     }
     
     if ( crgData->channelPhi.info.valid )
     {
-        if ( !( crgData->channelPhi.data = crgCalloc( crgData->channelPhi.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelPhi.data = ( double* ) crgCalloc( crgData->channelPhi.info.size, sizeof( double ) ) ) )
             return 0;
     }
     
@@ -1802,7 +1807,7 @@ allocateChannels( CrgDataStruct* crgData )
         crgData->channelBank.info.size = crgData->channelU.info.size;
         crgData->util.hasBank = 1;
         
-        if ( !( crgData->channelBank.data = crgCalloc( crgData->channelBank.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelBank.data = ( double* ) crgCalloc( crgData->channelBank.info.size, sizeof( double ) ) ) )
             return 0;
     }
     
@@ -1811,7 +1816,7 @@ allocateChannels( CrgDataStruct* crgData )
         /* copy size information */
         crgData->channelSlope.info.size = crgData->channelU.info.size;
         
-        if ( !( crgData->channelSlope.data = crgCalloc( crgData->channelSlope.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelSlope.data = ( double* ) crgCalloc( crgData->channelSlope.info.size, sizeof( double ) ) ) )
             return 0;
     }
     
@@ -1822,7 +1827,7 @@ allocateChannels( CrgDataStruct* crgData )
     {
         crgData->channelRefZ.info.size = crgData->channelU.info.size;
         
-        if ( !( crgData->channelRefZ.data = crgCalloc( crgData->channelRefZ.info.size, sizeof( double ) ) ) )
+        if ( !( crgData->channelRefZ.data = ( double* ) crgCalloc( crgData->channelRefZ.info.size, sizeof( double ) ) ) )
             return 0;
     }
     
@@ -1834,13 +1839,13 @@ readData( CrgDataStruct* crgData )
 {
     char   *recPtr      = crgData->admin.dataSection;        /* pointer to begin of record */
     size_t srcBytesLeft = crgData->admin.dataSize;
-    int    i;
-    int    nRec = 0;
+    size_t i;
+    size_t nRec = 0;
     
     /* --- parse through all records --- */
     while ( decodeNextRecord( crgData, &recPtr, &srcBytesLeft ) )
     {
-        /* crgMsgPrint( dCrgMsgLevelNotice, "readData: channelZ at cross section no. %d\n", nRec ); */
+        /* crgMsgPrint( dCrgMsgLevelNotice, "readData: channelZ at cross section no. %ld\n", nRec ); */
         for ( i = 0; i < crgData->channelV.info.size; i++ )
         {
             if ( crgIsNan( &( crgData->admin.recordBuffer[crgData->channelZ[i].info.index] ) ) )
@@ -1848,7 +1853,7 @@ readData( CrgDataStruct* crgData )
             else
                 crgData->channelZ[i].data[nRec] = ( float ) crgData->admin.recordBuffer[crgData->channelZ[i].info.index];
         }
-        /* crgMsgPrint( dCrgMsgLevelNotice, "readData: channelZ at cross section no. %d finished.\n", nRec ); */
+        /* crgMsgPrint( dCrgMsgLevelNotice, "readData: channelZ at cross section no. %ld finished.\n", nRec ); */
         
         if ( crgData->channelX.info.defined )
         {
@@ -1862,7 +1867,7 @@ readData( CrgDataStruct* crgData )
                 crgData->channelPhi.data[nRec] = crgData->channelPhi.info.first;
             else
                 crgData->channelPhi.data[nRec] = crgData->admin.recordBuffer[crgData->channelPhi.info.index];
-            crgMsgPrint( dCrgMsgLevelDebug, "readData: channelPhi.data[%d] = %.3f\n", nRec, crgData->channelPhi.data[nRec] );
+            crgMsgPrint( dCrgMsgLevelDebug, "readData: channelPhi.data[%ld] = %.3f\n", nRec, crgData->channelPhi.data[nRec] );
         }
             
         if ( crgData->channelBank.info.defined )
@@ -1890,10 +1895,10 @@ void
 crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
 {
     int totalNaN   = 0;
-    int minIndexLR = crgData->channelV.info.size;
-    int maxIndexRL = 0;
-    int i;
-    int v;
+    size_t minIndexLR = crgData->channelV.info.size;
+    size_t maxIndexRL = 0;
+    size_t i;
+    size_t v;
     int offsetApplied = 0;
 
     
@@ -1902,9 +1907,9 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
     
     for ( i = 0; i < crgData->channelU.info.size; i++ )
     {
-        int nan     = 0;
-        int indexLR = 0;
-        int indexRL = crgData->channelV.info.size-1;
+        size_t nan     = 0;
+        size_t indexLR = 0;
+        size_t indexRL = crgData->channelV.info.size-1;
         
         /* --- right to left --- */
         for ( v = 1; v < crgData->channelV.info.size; v++ )
@@ -1940,25 +1945,25 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
 
         /* --- left to right --- */
         offsetApplied = 0;
-        for ( v = crgData->channelV.info.size-2; v >=0; v-- )
+        for ( v = crgData->channelV.info.size-1; v > 0; v-- )
         {
-            if ( crgIsNanf( &( crgData->channelZ[v].data[i] ) ) && !crgIsNanf( &( crgData->channelZ[v+1].data[i] ) ) )
+            if ( crgIsNanf( &( crgData->channelZ[v-1].data[i] ) ) && !crgIsNanf( &( crgData->channelZ[v].data[i] ) ) )
             {
                 nan++;
                 
                 switch ( mode )
                 {
                     case dCrgGridNaNSetZero:
-                        crgData->channelZ[v].data[i] = ( float ) offset;
+                        crgData->channelZ[v-1].data[i] = ( float ) offset;
                         break;
                         
                     case dCrgGridNaNKeepLast:
                         /* --- copy data from right neighbor --- */
-                        memcpy( &( crgData->channelZ[v].data[i] ), &( crgData->channelZ[v+1].data[i] ), sizeof( crgData->channelZ[v].data[0] ) );
+                        memcpy( &( crgData->channelZ[v-1].data[i] ), &( crgData->channelZ[v].data[i] ), sizeof( crgData->channelZ[v-1].data[0] ) );
                         
-                        if ( !crgIsNanf( &( crgData->channelZ[v].data[i] ) ) && !offsetApplied )
+                        if ( !crgIsNanf( &( crgData->channelZ[v-1].data[i] ) ) && !offsetApplied )
                         {
-                            crgData->channelZ[v].data[i] += ( float ) offset;
+                            crgData->channelZ[v-1].data[i] += ( float ) offset;
                             offsetApplied = 1;
                         }
                         break;
@@ -1968,12 +1973,12 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
                 }
             }
             else
-                indexRL = v;
+                indexRL = v-1;
         }
         
         if ( nan > 0 )
         {
-            crgMsgPrint( dCrgMsgLevelInfo, "crgLoaderHandleNaNs: cross section %d: NaNs total: %4d, left: %4d, right %4d\n",
+            crgMsgPrint( dCrgMsgLevelInfo, "crgLoaderHandleNaNs: cross section %ld: NaNs total: %4ld, left: %4ld, right %4ld\n",
                                              i, nan, crgData->channelV.info.size - indexLR, indexRL );
         }
         
@@ -1994,9 +1999,9 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
     
     crgMsgPrint( dCrgMsgLevelNotice, "crgLoaderHandleNaNs: Summary of NaN handling information:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "                     NaNs in crg data replaced by constant extrapolation.\n" );
-    crgMsgPrint( dCrgMsgLevelNotice, "                     total NaNs in data [-]:        %d\n", totalNaN );
-    crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from left [-]:  %d\n", crgData->channelV.info.size - minIndexLR );
-    crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from right [-]: %d\n", maxIndexRL );
+    crgMsgPrint( dCrgMsgLevelNotice, "                     total NaNs in data [-]:        %ld\n", totalNaN );
+    crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from left [-]:  %ld\n", crgData->channelV.info.size - minIndexLR );
+    crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from right [-]: %ld\n", maxIndexRL );
 }
 
 static void
@@ -2006,7 +2011,7 @@ calcRefLine( CrgDataStruct* crgData )
     double y = crgData->channelY.info.first;
     double dx;
     double dy;
-    int i;
+    size_t i = 0u;
     
     /* --- calculate x/y only if phi is given --- */
     if ( !crgData->channelPhi.info.defined )
@@ -2035,7 +2040,7 @@ calcRefLine( CrgDataStruct* crgData )
         }
         else
         {
-            crgMsgPrint( dCrgMsgLevelWarn, "calcRefLine: xInfoSize = %d, yInfoSize = %d\n", crgData->channelX.info.size, crgData->channelY.info.size );
+            crgMsgPrint( dCrgMsgLevelWarn, "calcRefLine: xInfoSize = %ld, yInfoSize = %ld\n", crgData->channelX.info.size, crgData->channelY.info.size );
             crgData->channelX.info.last = crgData->channelX.data[crgData->channelX.info.size-1];
             crgData->channelY.info.last = crgData->channelY.data[crgData->channelY.info.size-1];
         }
@@ -2052,10 +2057,10 @@ calcRefLine( CrgDataStruct* crgData )
         crgData->channelX.data[crgData->channelX.info.size-1] = crgData->channelX.info.last;
         crgData->channelY.data[crgData->channelY.info.size-1] = crgData->channelY.info.last;
         
-        for ( i = crgData->channelPhi.info.size-2; i >= 0 ; i-- )
+        for ( i = crgData->channelPhi.info.size-1lu; i > 0lu ; --i )
         {
-            crgData->channelX.data[i] = crgData->channelX.data[i+1] - crgData->channelU.info.inc * cos( crgData->channelPhi.data[i+1] );
-            crgData->channelY.data[i] = crgData->channelY.data[i+1] - crgData->channelU.info.inc * sin( crgData->channelPhi.data[i+1] );
+            crgData->channelX.data[i-1lu] = crgData->channelX.data[i] - crgData->channelU.info.inc * cos( crgData->channelPhi.data[i] );
+            crgData->channelY.data[i-1lu] = crgData->channelY.data[i] - crgData->channelU.info.inc * sin( crgData->channelPhi.data[i] );
         }
         
         dx = crgData->channelX.info.first - crgData->channelX.data[0];
@@ -2117,7 +2122,7 @@ calcRefLine( CrgDataStruct* crgData )
 static void
 calcRefLineZ( CrgDataStruct* crgData )
 {
-    int    i;
+    size_t i;
     double slope;
     double zError;
     double fraction;
@@ -2134,12 +2139,12 @@ calcRefLineZ( CrgDataStruct* crgData )
        /* --- integrate slope -> z from end to start by backward integration --- */
         crgData->channelRefZ.data[crgData->channelRefZ.info.size-1] = crgData->channelRefZ.info.last;
         
-        for ( i = crgData->channelRefZ.info.size-2; i >= 0; i-- )
+        for ( i = crgData->channelRefZ.info.size-1; i > 0; i-- )
         {
             /* integrate with constant slope or with explicit values of slope channel */
-            slope = ( crgData->channelSlope.info.defined ) ? crgData->channelSlope.data[i+1] : crgData->channelSlope.info.first;
+            slope = ( crgData->channelSlope.info.defined ) ? crgData->channelSlope.data[i] : crgData->channelSlope.info.first;
             
-            crgData->channelRefZ.data[i] = crgData->channelRefZ.data[i+1] - slope * crgData->channelU.info.inc;
+            crgData->channelRefZ.data[i-1] = crgData->channelRefZ.data[i] - slope * crgData->channelU.info.inc;
         }
         
         /* --- check for z error at the start of the reference line --- */
@@ -2199,7 +2204,7 @@ normalizeRefLine( CrgDataStruct* crgData )
     double hdg;
     double cHdg;
     double sHdg;
-    int    i;
+    size_t i;
     
     /** @todo: disabled on May 1, 2009 */
     return;
@@ -2242,8 +2247,8 @@ static void
 normalizeZ( CrgDataStruct* crgData )
 {
     double zMean = 0.0;
-    int    i, j;
-    int    nValues = 0;
+    size_t i, j;
+    size_t nValues = 0;
 
     /* make mean elevation at first cross section = 0.0 */
     /* note: prepare may be called multiple times, so take old mean value into account */
@@ -2274,7 +2279,7 @@ static void
 smoothenRefLine( CrgDataStruct* crgData )
 {
     int     nU;
-    int     i;
+    size_t  i;
     double  val;
     double  hdg;
     double  xEnd;
@@ -2295,7 +2300,7 @@ smoothenRefLine( CrgDataStruct* crgData )
     
     /* --- allocate space for curvature data --- */
     tmpChannel.info.size = crgData->channelPhi.info.size;
-    if ( !( tmpChannel.data = crgCalloc( tmpChannel.info.size, sizeof( double ) ) ) )
+    if ( !( tmpChannel.data = ( double* ) crgCalloc( tmpChannel.info.size, sizeof( double ) ) ) )
     {
         crgMsgPrint( dCrgMsgLevelFatal, "calcCurvature: could not allocate space for curvature data.\n" );
         return;
@@ -2371,7 +2376,7 @@ smoothenRefLine( CrgDataStruct* crgData )
     x = xEnd;
     y = yEnd;
     
-    for ( i = tmpChannel.info.size-1; i <= 0; i-- );
+    for ( i = tmpChannel.info.size-1; i <= 0; i-- )
     {
         hdg  = tmpChannel.data[i];
         frac = ( 1.0 * i ) / ( 1.0 * ( tmpChannel.info.size - 1 ) ); 
@@ -2609,7 +2614,9 @@ crgCheckOpts( CrgDataStruct* crgData )
 int
 crgCheckMods( CrgDataStruct* crgData )
 {
-    int modAsInt, byoff, byref;
+    int    modAsInt = 0;
+    int    byoff    = 0;
+    int    byref    = 0;
     double modAsDouble;
 
     /* --- check singular value ranges */
@@ -2657,10 +2664,10 @@ crgCheckMods( CrgDataStruct* crgData )
     }
 
     /* CRG re-positioning: refline by offset (default: "by refpoint") */
-    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetPhi );
-    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetX );
-    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetY );
-    byoff = crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetZ );
+    byoff |= crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetPhi );
+    byoff |= crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetX );
+    byoff |= crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetY );
+    byoff |= crgOptionIsSet( &crgData->modifiers, dCrgModRefLineOffsetZ );
 
     if( byoff )
     {
@@ -2675,14 +2682,14 @@ crgCheckMods( CrgDataStruct* crgData )
     }
 
     /* CRG re-positioning: refline by refpoint (overwrites "by offset") */
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointX );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointY );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointZ );
-    byref = crgOptionIsSet( &crgData->modifiers, dCrgModRefPointPhi );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointX );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointY );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointZ );
+    byref |= crgOptionIsSet( &crgData->modifiers, dCrgModRefPointPhi );
 
     if( byref && byoff )
     {
@@ -2704,6 +2711,7 @@ crgCheckMods( CrgDataStruct* crgData )
         if ( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUFrac ) && !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointU ) )
         {
             crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointUFrac, 0. );
+            crgMsgPrint( dCrgMsgLevelNotice, "crgCheckMods: setting value of modifier \"refpoint_u_fraction\" to 0.0.\n");
         }
         if ( crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac ) && crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV ) )
         {
@@ -2713,6 +2721,7 @@ crgCheckMods( CrgDataStruct* crgData )
         if ( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointVFrac ) && !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointV ) )
         {
             crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointVFrac, 0. );
+            crgMsgPrint( dCrgMsgLevelNotice, "crgCheckMods: setting value of modifier \"refpoint_v_fraction\" to 0.0.\n");
         }
         if( !crgOptionIsSet( &crgData->modifiers, dCrgModRefPointUOffset ) )
             crgOptionSetDouble( &crgData->modifiers, dCrgModRefPointUOffset , 0. );
@@ -2748,7 +2757,7 @@ readDouble( char* dataPtr, double* tgt )
             memcpy( &valPtr[7-j], &dataPtr[j], sizeof( char ) );
     
     /* check for NaN and make sure it can be identified later-on */
-    memcpy( compValue, tgt, sizeof( tgt ) );
+    memcpy( compValue, tgt, sizeof( double ) );
     
     if ( mCrgBigEndian )
     {
@@ -2889,7 +2898,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
 	noBytesRead = fread( crgData->admin.fileBuffer, 1, fileStat.st_size, fPtr );
  	fclose( fPtr );
    
-    if ( noBytesRead < fileStat.st_size )
+    if ( noBytesRead < ( size_t ) fileStat.st_size )
     {
         crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: read error: only got %d of %d bytes\n", noBytesRead, fileStat.st_size );
         return 0;
