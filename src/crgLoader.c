@@ -7,7 +7,7 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	31.10.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  01.03.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  19.12.2011 by M. Dupuis @ VIRES GmbH
  * ===================================================
     Copyright 2011 VIRES Simulationstechnologie GmbH
 
@@ -1119,13 +1119,13 @@ static int
 decodeDataFormat( CrgDataStruct* crgData, const char* buffer, int code )
 {
     const char* bufPtr = buffer;
-    char dataFormat[4];
+    char dataFormat[5] = {'0', '0', '0', '0', '\0'}; 
     
     if ( !( bufPtr = findToken( buffer, "#:" ) ) )
         return 0;
 
     /* data format are the first 4 characters after token */
-    memcpy ( dataFormat, bufPtr, 4);
+    memcpy ( dataFormat, bufPtr, strlen(bufPtr)>4?4:strlen(bufPtr));
     
     crgData->admin.dataFormat |= strchr( dataFormat, 'L' ) ? dDataFormatLong            : dDataFormatCompact;
     crgData->admin.dataFormat |= strchr( dataFormat, 'D' ) ? dDataFormatPrecisionDouble : dDataFormatPrecisionSingle;

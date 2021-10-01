@@ -4,7 +4,7 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  09.12.2011 by H. Helmich @ VIRES GmbH
+ *  last mod.:  19.12.2011 by H. Helmich @ VIRES GmbH
  * ===================================================
     Copyright 2011 VIRES Simulationstechnologie GmbH
 
@@ -694,7 +694,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.0.3, December 09, 2011";
+    return "OpenCRG C-API release 1.0.4, December 19, 2011";
 }
 
 int
