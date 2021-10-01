@@ -125,7 +125,7 @@ typedef struct
     char    defined;     /* flag whether channel is defined in file         [0/1] */
     char    singlePrec;  /* flag whether channel is single precision        [0/1] */
     char    spare;       /* a spare for future use                            [-] */
-    int     index;       /* index of the channel                              [-] */
+    size_t  index;       /* index of the channel                              [-] */
     size_t  size;        /* number of entries in the channel                  [-] */
     double  first;       /* first (minimum) value in this channel             [m] */
     double  last;        /* last (maximum) value in this channel              [m] */
@@ -158,7 +158,7 @@ typedef struct
 {
     double x;       /* inertial x position                                    [m] */
     double y;       /* inertial y position                                    [m] */
-    int    index;   /* index of the inertial position in x/y data channels    [-] */
+    size_t index;   /* index of the inertial position in x/y data channels    [-] */
 } CrgHistoryEntryStruct;
 
 /** 
@@ -234,8 +234,8 @@ typedef struct
     double minVal;                      /* minimum physical value represented in index table                  [-] */
     double maxVal;                      /* maximum physical value represented in index table                  [-] */
     double range;                       /* range of physical values                                           [-] */
-    int    size;                        /* size of the table                                                  [-] */
-    int    refIdx[dCrgVTableStdSize];   /* the index table itself                                             [-] */
+    size_t size;                        /* size of the table                                                  [-] */
+    size_t refIdx[dCrgVTableStdSize];   /* the index table itself                                             [-] */
 } CrgIndexTable;
 
 /**
@@ -244,7 +244,7 @@ typedef struct
 typedef struct
 {
     CrgAdminStruct       admin;                       /* administrative data                                                              */
-    int                  noChannels;                  /* total number of available channels in crg data                               [-] */
+    size_t               noChannels;                  /* total number of available channels in crg data                               [-] */
     CrgChannelStruct     channelV;                    /* channels holding v data                                                          */
     CrgChannelStruct     channelX;                    /* channel holding x data of reference line                                         */
     CrgChannelStruct     channelY;                    /* channel holding y data of reference line                                         */

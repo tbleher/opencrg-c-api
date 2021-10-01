@@ -15,7 +15,7 @@
 #    limitations under the License.
 
 #library version
-REVISION = 1.0
+REVISION = 1.1.1
 
 #directories
 LIB_DIR = lib

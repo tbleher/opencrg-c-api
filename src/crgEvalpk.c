@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	27.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  11.01.2016 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2016 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ int
 crgDataEvaluv2pk( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u, double v, double* phi, double* curv )
 {
     size_t indexU = 0;
-    int    nU;
+    size_t nU;
     double fracU;
 
     /* --- compute the fallback solution --- */
@@ -101,8 +101,9 @@ crgDataEvaluv2pk( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u
         indexU = 0;
     else
     {
-        indexU = ( int ) fracU;
+        indexU = ( size_t ) fracU;
         
+        /* data dimension is at least 2x2 */
         if ( indexU >= crgData->channelU.info.size - 1 )
             indexU = crgData->channelU.info.size - 2;
     }
@@ -110,12 +111,12 @@ crgDataEvaluv2pk( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u
     fracU -= indexU;
 
     /* get curvature on road sections of 0.5m length - if possible */
-    nU = ( int ) ( 0.5 / crgData->channelU.info.inc );
+    nU = ( size_t ) ( 0.5 / crgData->channelU.info.inc );
     
     if ( nU < 1 )
         nU = 1;
     
-    if ( indexU - nU < 0 )
+    if ( nU > indexU )
     { /* evaluation before start of road -> return phi(0) and k=0 */
         *phi  = crgData->channelPhi.info.first;
         *curv = 0.0; 

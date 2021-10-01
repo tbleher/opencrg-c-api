@@ -4,9 +4,9 @@
  *  purpose:	contact point management routines
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  03.04.2015 by H. Helmich @ VIRES GmbH
+ *  last mod.:  12.01.2016 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2015 VIRES Simulationstechnologie GmbH
+    Copyright 2016 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -464,8 +464,9 @@ crgContactPointPreloadHistoryU( CrgContactPointStruct *cp, double u )
         index = 0;
     else
     {
-        index = ( int ) frac;
+        index = ( size_t ) frac;
         
+        /* data dimension is at least 2x2 */
         if ( index >= cp->crgData->channelX.info.size - 1 )
             index = cp->crgData->channelX.info.size - 2;
     }
@@ -603,7 +604,7 @@ crgContactPointPrintHistory( CrgContactPointStruct *cp, double x, double y )
     if ( !cp )
         return;
     
-    crgMsgPrint( dCrgMsgLevelNotice, "History for contact point %p during query %d\n", ( unsigned long ) ( cp ), cp->history.stat.noTotalQueries );
+    crgMsgPrint( dCrgMsgLevelNotice, "History for contact point %p during query %d\n", ( void* ) ( cp ), cp->history.stat.noTotalQueries );
     
     for ( i = 0; i < cp->history.usedSize; i++ )
     {

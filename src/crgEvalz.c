@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	26.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  03.06.2011 by H. Helmich @ VIRES GmbH
+ *  last mod.:  11.01.2016 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2016 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
 {
     size_t indexU         = 0;
     size_t indexV         = 0;
-    size_t calcIndex      = 1;
+    int    calcIndex      = 1;
     int    inCoreAreaU    = 1; /* indicates u position is in or out of the core area */
     int    inCoreAreaV    = 1; /* indicates u position is in or out of the core area */
     int    calcValue      = 1;
@@ -210,7 +210,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
         if ( fracU < 0.0 )
             fracU = 0.0;
         
-        indexU = ( int ) fracU;
+        indexU = ( size_t ) fracU;
         
         if ( indexU >= crgData->channelU.info.size - 1 )
         {
@@ -312,7 +312,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             if ( fracV < 0.0 )
                 fracV = 0.0;
             
-            indexV = ( int ) fracV;
+            indexV = ( size_t ) fracV;
             
             if ( indexV >= crgData->channelV.info.size - 1 )
             {
@@ -433,12 +433,11 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             /* --- make a better first guess for the v index based on a pre-computed index table --- */
             if ( crgData->indexTableV.valid )
             {
-                int lookUpIdx = ( int ) ( ( vPos - crgData->indexTableV.minVal ) / crgData->indexTableV.range * ( crgData->indexTableV.size - 1 ) );
-                
+                size_t lookUpIdx = 0;
+                if(vPos > crgData->indexTableV.minVal)
+                    lookUpIdx = ( size_t ) ( ( vPos - crgData->indexTableV.minVal ) / crgData->indexTableV.range * ( crgData->indexTableV.size - 1 ) );
                 if ( lookUpIdx > ( crgData->indexTableV.size - 1 ) )
                     lookUpIdx = crgData->indexTableV.size - 1;
-                else if ( lookUpIdx < 0 )
-                    lookUpIdx = 0;
                 
                 indexCtr = crgData->indexTableV.refIdx[lookUpIdx];
                 
@@ -654,7 +653,7 @@ int
 crgDataEvalu2Refz( CrgDataStruct *crgData, double u, double* z )
 {
     double fracU;
-    size_t index;
+    size_t index = 0;
     
     if ( !crgData )
         return 0;
@@ -672,10 +671,8 @@ crgDataEvalu2Refz( CrgDataStruct *crgData, double u, double* z )
         
         fracU = ( u - crgData->channelU.info.first ) / crgData->channelU.info.inc;
         
-        index = ( int ) fracU;
-        
-        if ( index < 0 )
-            index = 0;
+        if ( fracU >= 0. )
+            index = ( size_t ) fracU;
         
         if ( index >= crgData->channelRefZ.info.size - 1 )
            index = crgData->channelRefZ.info.size - 2;

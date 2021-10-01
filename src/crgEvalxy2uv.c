@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.07.2013 by H. Helmich @ VIRES GmbH
+ *  last mod.:  11.01.2016 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2016 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ crgEvalxy2uv( int cpId, double x, double y, double* u, double* v )
 int 
 crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, double* v )
 {
-    size_t indexMin = -1;
+    size_t indexMin = 0;
     int useHist  =  0;
     CrgDataStruct* crgData;
     double x0;
@@ -81,6 +81,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     double dist2Min = 0;
     size_t indexP1;
     size_t i;
+    int j;
     size_t lastIdx;
     
     if ( !cp )
@@ -104,7 +105,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     /* --- check for the information in the history  --- */
     /* --- look for search start interval in history --- */
 
-    for ( i = 0; i < cp->history.usedSize; i++ )
+    for ( j = 0; j < cp->history.usedSize; j++ )
     {
         double dist2;
         double dx;
@@ -115,8 +116,8 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
             cp->history.stat.noIter++;
 #endif
 
-        dx = cp->x - cp->history.entry[i].x;
-        dy = cp->y - cp->history.entry[i].y;
+        dx = cp->x - cp->history.entry[j].x;
+        dy = cp->y - cp->history.entry[j].y;
         
         dist2 = dx * dx + dy * dy;
         
@@ -124,7 +125,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
         if ( dist2 <  cp->history.closeDist )
         {
             useHist  = 1;
-            indexMin = cp->history.entry[i].index;
+            indexMin = cp->history.entry[j].index;
             
 #ifdef dCrgEnableStats
             if ( cp->history.stat.active )
@@ -138,7 +139,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
             if ( !useHist || ( dist2 < dist2Min ) )
             {
                 dist2Min = dist2;
-                indexMin = cp->history.entry[i].index;
+                indexMin = cp->history.entry[j].index;
                 useHist  = 1;
                 
 #ifdef dCrgEnableStats
@@ -272,11 +273,11 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
     
     for(;;)
     {
-        int indexM2 = indexMin - 2;
+        size_t indexM2 = 0;
 
-        if ( indexM2 < 0 )
-            indexM2 = 0;
-        
+        if ( indexMin > 1 )
+            indexM2 = indexMin - 2;
+
         x0 = crgData->channelX.data[indexM2];
         x1 = crgData->channelX.data[indexMin-1];
         x2 = crgData->channelX.data[indexMin];  

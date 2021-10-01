@@ -230,7 +230,7 @@ crgPrintElevData( CrgDataStruct *crgData )
     
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
-        fprintf( stderr, "channel %ld at offset %.3f\n", i, crgData->channelV.data[i] );
+        fprintf( stderr, "channel %ld at offset %.3f\n", (unsigned long)i, crgData->channelV.data[i] );
         for ( j = 0; j < crgData->channelZ[i].info.size; j++ )
             fprintf( stderr, "%10.5f ", crgData->channelZ[i].data[j] );
         fprintf( stderr, "\n" );

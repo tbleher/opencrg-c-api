@@ -266,7 +266,7 @@ static int parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nByt
 * @param  nBytesLeft  number of bytes left for interpretation
 * @return pointer to the data record
 */
-static char* getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft );
+static char* getNextRecord( size_t recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft );
 
 /**
 * decode a single data record
@@ -1267,7 +1267,7 @@ prepareFromIndexDef( CrgDataStruct* crgData )
 static void 
 calcRecordSize( CrgDataStruct* crgData )
 {
-    unsigned int recordSize = 0;
+    size_t recordSize = 0;
     
     if ( !crgData )
         return;
@@ -1290,7 +1290,7 @@ calcRecordSize( CrgDataStruct* crgData )
     
     crgData->admin.recordSize = recordSize;
     
-    crgMsgPrint( dCrgMsgLevelDebug, "calcRecordSize: expecting %d channels, recordSize = %d\n", crgData->noChannels, recordSize );
+    crgMsgPrint( dCrgMsgLevelDebug, "calcRecordSize: expecting %lu channels, recordSize = %lu\n", crgData->noChannels, recordSize );
 }
 
 static size_t
@@ -1448,7 +1448,7 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
 }
 
 static char* 
-getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft )
+getNextRecord( size_t recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft )
 {
     size_t i;
     
@@ -1458,7 +1458,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
     /* --- is the data format binary? --- */
     if ( dataFormat & dDataFormatBinary )
     {
-        if ( nBytesLeft >= ( size_t ) recordSize )
+        if ( nBytesLeft >= recordSize )
             return dataPtr + recordSize;
         
         return NULL;
@@ -1479,7 +1479,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
     /* --- we handle ASCII data --- */
     if ( dataFormat & dDataFormatLong )
     {
-        int noLines = recordSize / 80;
+        size_t noLines = recordSize / 80;
         
         for ( i = 0; i < noLines && dataPtr && nBytesLeft; i++ )
         {
@@ -1515,7 +1515,7 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
         return dataPtr;
     }
 
-    if ( nBytesLeft >= ( size_t ) recordSize )
+    if ( nBytesLeft >= recordSize )
         return dataPtr + recordSize;
     
     return NULL;
@@ -1524,12 +1524,12 @@ getNextRecord( int recordSize, int dataFormat, char *dataPtr, size_t nBytesLeft 
 static int
 decodeRecord( CrgDataStruct* crgData, char* dataPtr, size_t nBytes )
 {
-    int    i;
+    size_t i;
     double value;
     float  fValue;
     size_t nBytesLeft = nBytes;
     char   tmpStr[32];
-    int    length;
+    size_t length;
     
     if ( crgData->admin.dataFormat & dDataFormatASCII )
     {
@@ -1545,7 +1545,7 @@ decodeRecord( CrgDataStruct* crgData, char* dataPtr, size_t nBytes )
     
     for ( i = 0; i < crgData->noChannels; i++ )
     {
-        if ( nBytesLeft < ( size_t ) length )
+        if ( nBytesLeft < length )
             return 0;
 
         if ( crgData->admin.dataFormat & dDataFormatASCII )
@@ -1556,7 +1556,7 @@ decodeRecord( CrgDataStruct* crgData, char* dataPtr, size_t nBytes )
                 nBytesLeft--;
                 dataPtr++;
                 
-                if ( nBytesLeft < ( size_t ) length )
+                if ( nBytesLeft < length )
                     return 0;
             }
             
@@ -1782,7 +1782,7 @@ allocateChannels( CrgDataStruct* crgData )
             
     /* --- print some debug information --- */
     for ( i = 0; i < crgData->channelV.info.size; i++ )
-        crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: channelZ[%ld].info.index = %ld, channelZ[%d].info.size = %ld\n",
+        crgMsgPrint( dCrgMsgLevelDebug, "allocateChannels: channelZ[%ld].info.index = %ld, channelZ[%ld].info.size = %ld\n",
                                          i, crgData->channelZ[i].info.index, i, crgData->channelZ[i].info.size );
     
     /* --- and the other ones --- */
@@ -2278,7 +2278,7 @@ normalizeZ( CrgDataStruct* crgData )
 static void
 smoothenRefLine( CrgDataStruct* crgData )
 {
-    int     nU;
+    size_t  nU;
     size_t  i;
     double  val;
     double  hdg;
@@ -2311,7 +2311,7 @@ smoothenRefLine( CrgDataStruct* crgData )
 
     /* --- get number of u intervals at least 0.5m long --- */
     
-    nU = ( int ) ( 0.5 / crgData->channelU.info.inc );
+    nU = ( size_t ) ( 0.5 / crgData->channelU.info.inc );
     
     if ( nU < 1 )
         nU = 1;
@@ -2878,6 +2878,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
         if ( !( crgData = crgDataSetCreate() ) )
         {
             crgMsgPrint( dCrgMsgLevelFatal, "crgLoaderAddFile: could not create data set\n" );
+            fclose(fPtr);
             return 0;
         }
         
@@ -2887,11 +2888,12 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
     
     /* --- memory map the file for faster access --- */
     stat( filename, &fileStat );
-	crgData->admin.fileBuffer = ( char * ) crgCalloc( 1, fileStat.st_size );
+	crgData->admin.fileBuffer = ( char * ) crgCalloc( 1, fileStat.st_size + 1 );
     
     if ( !crgData->admin.fileBuffer )
     {
         crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: cannot allocate memory for file data\n" );
+        fclose(fPtr);
         return 0;
     }
     

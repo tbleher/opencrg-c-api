@@ -4,9 +4,9 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  31.07.2015 by H. Helmich @ VIRES GmbH
+ *  last mod.:  17.01.2017 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2015 VIRES Simulationstechnologie GmbH
+    Copyright 2017 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ crgDataSetRelease( int dataSet )
         crgFree( crgData->options.entry );
 
     /* --- invalidate the data set in the master list --- */
-    for ( i = 0; i < sNoDataSets; i++ )
+    for ( i = 0; i < (size_t)sNoDataSets; i++ )
         if ( sDataSetList[i] == crgData )
         {
             sDataSetList[i] = NULL;
@@ -721,7 +721,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.1, July 31, 2015";
+    return "OpenCRG C-API release 1.1.1, January 17, 2017";
 }
 
 int
@@ -804,7 +804,12 @@ crgDataSetBuildVTable( int dataSetId )
         crgMsgPrint( dCrgMsgLevelWarn, "crgDataSetBuildVTable: invalid data set id <%d>.\n", dataSetId );
         return;
     }
-    
+    if ( !crgData->channelV.info.size )
+    {
+         crgMsgPrint( dCrgMsgLevelFatal, "crgDataSetBuildVTable: no cross section for data set id <%d>.\n", dataSetId );
+         return;
+    }
+
     crgData->indexTableV.minVal = crgData->channelV.info.first;
     crgData->indexTableV.maxVal = crgData->channelV.info.last;
     crgData->indexTableV.range  = crgData->indexTableV.maxVal - crgData->indexTableV.minVal;
@@ -822,9 +827,10 @@ crgDataSetBuildVTable( int dataSetId )
     for ( i = 0; i < dCrgVTableStdSize; i++ )
     {
         double vPos = crgData->indexTableV.minVal + i * crgData->indexTableV.range / ( dCrgVTableStdSize - 1 );
-        int    indexV = 0;
-        int    indexCtr;
-        int    index0 = crgData->channelV.info.size - 1;
+ 
+        size_t    indexV = 0;
+        size_t    indexCtr;
+        size_t    index0 = crgData->channelV.info.size - 1;
         
         while ( 1 )
         {
@@ -1000,7 +1006,7 @@ crgDataApplyTransformations( CrgDataStruct *crgData )
         
         crgDataOffsetChannel( &( crgData->channelPhi ), rotAngle );
 
-        /* --- compute sine and cosine of directoin at either end of reference line */
+        /* --- compute sine and cosine of direction at either end of reference line */
         crgData->util.phiFirstSin = sin( crgData->channelPhi.info.first );
         crgData->util.phiFirstCos = cos( crgData->channelPhi.info.first );
         crgData->util.phiLastSin  = sin( crgData->channelPhi.info.last  );

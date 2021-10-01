@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	18.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  12.01.2016 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2013 VIRES Simulationstechnologie GmbH
+    Copyright 2016 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -98,8 +98,9 @@ crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u
         index = 0;
     else
     {
-        index = ( int ) frac;
+        index = ( size_t ) frac;
         
+        /* data dimension is at least 2x2 */
         if ( index >= crgData->channelX.info.size - 1 )
             index = crgData->channelX.info.size - 2;
     }
