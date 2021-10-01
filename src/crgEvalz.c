@@ -7,9 +7,9 @@
  *  based on routines by Dr. Jochen Rauh, Daimler AG
  * ---------------------------------------------------
  *  first edit:	26.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  03.06.2011 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2010 VIRES Simulationstechnologie GmbH
+    Copyright 2011 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
     int    indexV         = 0;
     int    calcIndex      = 1;
     int    inCoreAreaU    = 1; /* indicates u position is in or out of the core area */
+    int    inCoreAreaV    = 1; /* indicates u position is in or out of the core area */
     int    calcValue      = 1;
     int    calcBank       = 1;
     int    calcSmoothBase = 0;
@@ -91,6 +92,9 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
     double smoothScale    = 1.0;   /* scale from smoothing option        */
     double smoothZone     = 0.0;   /* length of smoothing zone           */
     double smoothBase     = 0.0;   /* base value against which to smooth */
+
+    int borderModeU       = dCrgBorderModeNone;
+    int borderModeV       = dCrgBorderModeExKeep;
 
     /* --- compute the fallback solution --- */
     *z = 0.0;
@@ -116,7 +120,6 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
     /* correct u interval depending on evaluation options */
     if ( ( u < crgData->channelU.info.first ) || ( u > crgData->channelU.info.last ) )
     {
-        int borderModeU = dCrgBorderModeNone;
         
 #ifdef dCrgEnableStats
         if ( crgData->perfStat.active )
@@ -147,7 +150,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             else
                 calcSmoothBase = 2; /* --- base value for smoothing needs to be calculated --- */
             /* --- rest of fracU > 1.0 will be handled automatically by index calculation below --- */
-            calcBank  = 0;
+            /* calcBank  = 0; */    /* new policy in rev. 1.0.3 */
         }
         else if ( borderModeU == dCrgBorderModeExZero )
         {
@@ -174,6 +177,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             
             /* we're back to the core area */
             inCoreAreaU = 1;
+
             u = crgData->channelU.info.first + fracU * crgData->channelU.info.inc;
         }
         else if ( borderModeU == dCrgBorderModeReflect )
@@ -191,11 +195,12 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             
             /* we're back to the core area */
             inCoreAreaU = 1;
+
             u = crgData->channelU.info.first + fracU * crgData->channelU.info.inc;
         }
         
         /* --- any offset option valid? --- */
-        if ( optionList )
+        if ( optionList  )
             zOffset += optionList->entry[dCrgCpOptionBorderOffsetU].valid ? optionList->entry[dCrgCpOptionBorderOffsetU].dValue : 0.0;
     }
     
@@ -228,8 +233,10 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
         /* correct v interval depending on evaluation options */
         if ( ( v < crgData->channelV.info.first ) || ( v > crgData->channelV.info.last ) )
         {
-            int borderModeV = dCrgBorderModeExKeep;
-            
+
+            /* --- leaving the core area --- */
+            inCoreAreaV = 0;
+
             if ( !optionList )
                 return 0;
             
@@ -244,6 +251,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
             {
                 if ( fracV < 0.0 )
                 {
+                    inCoreAreaV = 0;
                     fracV     = 0.0;
                     calcIndex = 0;
                 }
@@ -266,6 +274,10 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
                     fracV += maxFrac;
                 
                 /* --- clamp v to the valid range --- */
+
+                /* we're back to the core area */
+                inCoreAreaV = 1;
+
                 v = crgData->channelV.info.first + fracV * crgData->channelV.info.inc;
             }
             else if ( borderModeV == dCrgBorderModeReflect )
@@ -282,6 +294,10 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
                     fracV = maxFrac - fracV;
                 
                 /* --- clamp v to the valid range --- */
+
+                /* we're back to the core area */
+                inCoreAreaV = 1;
+
                 v = crgData->channelV.info.first + fracV * crgData->channelV.info.inc;
             }
             
@@ -319,7 +335,11 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
         /* --- is a border mode active? --- */
         if ( ( vPos < crgData->channelV.info.first ) || ( vPos > crgData->channelV.info.last ) )
         {
-            int borderModeV = dCrgBorderModeExKeep;
+
+            /* --- leaving the core area --- */
+            inCoreAreaV = 0;
+
+            borderModeV = dCrgBorderModeExKeep;
         
 #ifdef dCrgEnableStats
             if ( crgData->perfStat.active )
@@ -346,7 +366,7 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
                 {
                     /* --- value zero is already initialized, don't perform full calculation --- */
                     calcValue = 0;
-               }
+                }
             }
             
             if ( borderModeV == dCrgBorderModeRepeat )
@@ -357,6 +377,9 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
                     vPos = crgData->channelV.info.first + fmod( ( vPos - crgData->channelV.info.last ), vRange );
                 else if ( vPos < crgData->channelV.info.first )
                     vPos = crgData->channelV.info.last + fmod( ( vPos - crgData->channelV.info.first ), vRange );
+
+                /* we're back to the core area */
+                inCoreAreaV = 1;
                 
                 /* --- again: correct for numeric inaccuracies at the border --- */
                 if ( fabs( vPos - crgData->channelV.info.first ) < dMaxBorderError )
@@ -394,6 +417,10 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
                     else
                         vPos = crgData->channelV.info.first - remainder;
                 }
+
+                /* we're back to the core area */
+                inCoreAreaV = 1;
+
             }
             
             /* --- any offset option valid? --- */
@@ -479,81 +506,81 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
         
         /* add mean value which was subtracted during normalization of channel values */
         *z += crgData->channelZ[indexV].info.mean;
-
-        /* --- is a transition (smooth) option set? --- */
-        if ( optionList )
+    }
+    
+    /* --- is a transition (smooth) option set? --- */
+    if ( optionList )
         {
             if ( optionList->entry[dCrgCpOptionSmoothUBegin].valid || optionList->entry[dCrgCpOptionSmoothUEnd].valid )
-            {
-                if ( inCoreAreaU || calcSmoothBase )
                 {
-                    /* NOTE: smoothZone cannot be 0.0; this is checked when setting the option */
-                    if ( optionList->entry[dCrgCpOptionSmoothUBegin].valid )
-                    {
-                        smoothZone = optionList->entry[dCrgCpOptionSmoothUBegin].dValue;
-                        
-                        if ( ( u - crgData->channelU.info.first ) <= smoothZone )
-                        {
-                            if ( u < crgData->channelU.info.first )
-                                smoothScale = 0.0;
-                            else
-                                smoothScale = ( u - crgData->channelU.info.first ) / smoothZone;
-                            calcSmoothBase = 1;
-                            calcSmooth     = 1;
-                        }
-                    }
-                    if ( optionList->entry[dCrgCpOptionSmoothUEnd].valid )
-                    {
-                        smoothZone = optionList->entry[dCrgCpOptionSmoothUEnd].dValue;
-                        
-                        if ( ( crgData->channelU.info.last - u ) <= smoothZone )
-                        {
-                            if ( u > crgData->channelU.info.last )
-                                smoothScale = 0.0;
-                            else
-                                smoothScale = ( crgData->channelU.info.last - u ) / smoothZone;
-                            calcSmoothBase = 2;
-                            calcSmooth     = 1;
-                        }
-                    }
-                }
-                
-                /* take smoothing base value into account? */
-                if ( calcSmoothBase )
-                {
-                    if ( calcSmoothBase == 1 )
-                    {
-                        if ( crgData->channelRefZ.info.valid )
-                            smoothBase += crgData->channelRefZ.data[0];
-                        else
-                            smoothBase += crgData->channelRefZ.info.first;
-                    }
-                    else if ( calcSmoothBase == 2 )
-                    {
-                        if ( crgData->channelRefZ.info.valid )
-                            smoothBase += crgData->channelRefZ.data[ crgData->channelRefZ.info.size-1 ];
-                        else
-                            smoothBase += crgData->channelRefZ.info.last;
-                    }
-                }
-            }
-        }
-    }
 
-    /* --- add slope, banking, offsets and smoothing --- */
-    
+                    if ( inCoreAreaU || calcSmoothBase )
+                        {
+                            /* NOTE: smoothZone cannot be 0.0; this is checked when setting the option */
+                            if ( optionList->entry[dCrgCpOptionSmoothUBegin].valid )
+                                {
+                                    smoothZone = optionList->entry[dCrgCpOptionSmoothUBegin].dValue;
+                        
+                                    if ( (u-crgData->channelU.info.first) <= smoothZone )
+                                        {
+                                            if ( u < crgData->channelU.info.first )
+                                                smoothScale = 0.0;
+                                            else
+                                                smoothScale = ( u - crgData->channelU.info.first ) / smoothZone;
+                                            calcSmoothBase = 1;
+                                            calcSmooth     = 1;
+                                        }
+                                }
+                            if ( optionList->entry[dCrgCpOptionSmoothUEnd].valid )
+                                {
+                                    smoothZone = optionList->entry[dCrgCpOptionSmoothUEnd].dValue;
+                        
+                                    if ( (crgData->channelU.info.last - u) <= smoothZone )
+                                        {
+                                            if ( u > crgData->channelU.info.last )
+                                                smoothScale = 0.0;
+                                            else
+                                                smoothScale = ( crgData->channelU.info.last - u ) / smoothZone;
+                                            calcSmoothBase = 2;
+                                            calcSmooth     = 1;
+                                        }
+                                }
+                        }
+                
+                    /* take smoothing base value into account? */
+                    if ( calcSmoothBase )
+                        {
+                            if ( calcSmoothBase == 1 )
+                                {
+                                    if ( crgData->channelRefZ.info.valid )
+                                        smoothBase += crgData->channelRefZ.data[0];
+                                    else
+                                        smoothBase += crgData->channelRefZ.info.first;
+                                }
+                            else if ( calcSmoothBase == 2 )
+                                {
+                                    if ( crgData->channelRefZ.info.valid )
+                                        smoothBase += crgData->channelRefZ.data[ crgData->channelRefZ.info.size-1 ];
+                                    else
+                                        smoothBase += crgData->channelRefZ.info.last;
+                                }
+                        }
+                }
+        }
+
     /* --- clip frac U to maximum valid range --- */
     if ( fracU < 0.0 )
         fracU = 0.0;
     else if ( fracU > 1.0 )
         fracU = 1.0;
-    
+
+    /* --- add slope, banking, offsets and smoothing --- */
     /* add z displacement from reference line z data */
     if ( crgData->channelRefZ.info.valid )
        *z += crgData->channelRefZ.data[indexU] + fracU * ( crgData->channelRefZ.data[indexU+1] - crgData->channelRefZ.data[indexU] );
     else
-       *z += crgData->channelRefZ.info.first;
-    
+        *z += crgData->channelRefZ.info.first;
+
     /* add z displacement from banking */
     if ( crgData->util.hasBank && calcBank )
     {
@@ -570,12 +597,23 @@ crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u,
         
         *z += bank * v;
     }
-    
+
     /* add any additional offset caused by options etc. */
-    *z += zOffset;
-    
-    if ( calcSmooth )
-    {
+    if (!inCoreAreaU) {
+        if (borderModeU == dCrgBorderModeExZero )
+            *z = zOffset;
+        else if(borderModeU == dCrgBorderModeExKeep )
+            *z += zOffset;
+        
+    }
+    else if (!inCoreAreaV) {
+        if (borderModeV == dCrgBorderModeExZero )
+            *z = zOffset;
+        else if(borderModeV == dCrgBorderModeExKeep )
+            *z += zOffset;
+    }
+
+    if ( calcSmooth ){
         /* overall scale may be influenced by the smoothing zone */
         *z = smoothBase + ( *z - smoothBase ) * smoothScale;
     }

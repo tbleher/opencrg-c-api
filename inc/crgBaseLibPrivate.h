@@ -12,7 +12,7 @@
  *  first edit:	03.12.2008 by M. Dupuis @ VIRES GmbH
  *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
  * ===================================================
-    Copyright 2010 VIRES Simulationstechnologie GmbH
+    Copyright 2011 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -96,7 +96,6 @@ typedef struct
     int     recordSize;   /* size of a single data record                [byte] */
     int     sectionType;  /* temporarily used while reading file            [-] */
 } CrgAdminStruct;
-
 
 /** 
 * this structure stores statistical information about a single CRG file

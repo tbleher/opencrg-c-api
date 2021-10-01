@@ -4,9 +4,9 @@
  *  purpose:	top level data manager
  * ---------------------------------------------------
  *  first edit:	13.11.2008 by M. Dupuis @ VIRES GmbH
- *  last mod.:  26.02.2010 by M. Dupuis @ VIRES GmbH
+ *  last mod.:  09.12.2011 by H. Helmich @ VIRES GmbH
  * ===================================================
-    Copyright 2010 VIRES Simulationstechnologie GmbH
+    Copyright 2011 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -588,8 +588,9 @@ crgDataSetModifiersApply( int dataSetId )
     /* --- does the data prepare stage need to be re-called? --- */
     if ( needPrepare )
         crgLoaderPrepareData( crgData );
+
     
-    /* --- transform data to a different locaction? --- */
+    /* --- transform data to a different location? --- */
     crgDataApplyTransformations( crgData );
 }
 
@@ -693,7 +694,7 @@ crgMemRelease( void )
 const char*
 crgGetReleaseInfo( void )
 {
-    return "OpenCRG C-API release 1.0.2, September 24, 2010";
+    return "OpenCRG C-API release 1.0.3, December 09, 2011";
 }
 
 int

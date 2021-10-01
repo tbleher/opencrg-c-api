@@ -9,7 +9,7 @@
  *  first edit:	31.10.2008 by M. Dupuis @ VIRES GmbH
  *  last mod.:  01.03.2010 by M. Dupuis @ VIRES GmbH
  * ===================================================
-    Copyright 2010 VIRES Simulationstechnologie GmbH
+    Copyright 2011 VIRES Simulationstechnologie GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -654,8 +654,8 @@ isComment( const char* buffer )
     while ( *checkPtr != '\0' )
     {
         if ( *checkPtr != ' ' )
-            return *checkPtr == '*';
-       checkPtr++;
+            return *checkPtr == '*'; 
+        checkPtr++;
     }
                 
     return 0;
@@ -1119,14 +1119,18 @@ static int
 decodeDataFormat( CrgDataStruct* crgData, const char* buffer, int code )
 {
     const char* bufPtr = buffer;
+    char dataFormat[4];
     
     if ( !( bufPtr = findToken( buffer, "#:" ) ) )
         return 0;
+
+    /* data format are the first 4 characters after token */
+    memcpy ( dataFormat, bufPtr, 4);
     
-    crgData->admin.dataFormat |= strchr( bufPtr, 'L' ) ? dDataFormatLong            : dDataFormatCompact;
-    crgData->admin.dataFormat |= strchr( bufPtr, 'D' ) ? dDataFormatPrecisionDouble : dDataFormatPrecisionSingle;
-    crgData->admin.dataFormat |= strchr( bufPtr, 'F' ) ? dDataFormatASCII           : dDataFormatBinary;
-    
+    crgData->admin.dataFormat |= strchr( dataFormat, 'L' ) ? dDataFormatLong            : dDataFormatCompact;
+    crgData->admin.dataFormat |= strchr( dataFormat, 'D' ) ? dDataFormatPrecisionDouble : dDataFormatPrecisionSingle;
+    crgData->admin.dataFormat |= strchr( dataFormat, 'F' ) ? dDataFormatASCII           : dDataFormatBinary;
+
     return 1;
 }
 
@@ -1147,7 +1151,7 @@ findToken( const char* haystack, const char* token )
     while ( *bufPtr != '\0' && *bufPtr != '!' )
     {
         if ( crgStrBeginsWithStrNoCase( bufPtr, token ) )
-			return bufPtr + strlen( token );
+            return bufPtr + strlen( token );
         
         ++bufPtr;
     }
@@ -1369,7 +1373,7 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
         switch ( crgData->admin.sectionType )
         {
             /* --- when in comment section, ignore all inputs until end of section --- */
-            case dFileSectionComment:
+            case dFileSectionComment: 
                 if ( tagIsEndOfSection( buffer ) )
                     setSection( crgData, NULL, dFileSectionNone );
                 else
@@ -1390,7 +1394,6 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
                 else
                     decodeIncludeFile( crgData, buffer, dOpcodeIncludeItem );
                 break;
-                
             default:
                 if ( isComment( buffer ) )
                     break;
