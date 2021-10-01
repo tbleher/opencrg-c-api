@@ -77,6 +77,14 @@
 #define dDataFormatASCII           0x0010
 #define dDataFormatBinary          0x0020
 
+#ifdef _WIN64
+#    define stat _stat64
+#elif _WIN32
+    // Nothing to do, default stat uses 32 bit on Windows
+#elif __linux__
+    // Nothing to do, Linux automatically switches between 32-bit and 64-bit version of stat depending on the architecture
+#endif
+
 /* ====== TYPE DEFINITIONS ====== */
 typedef struct 
 {
@@ -2850,7 +2858,7 @@ static int
 crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
 {
     size_t        noBytesRead;
-    struct stat   fileStat;
+    struct stat fileStat;
     char*         bufPtr;
     size_t        nBytesLeft;
 	FILE*         fPtr = NULL;
@@ -2902,7 +2910,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
    
     if ( noBytesRead < ( size_t ) fileStat.st_size )
     {
-        crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: read error: only got %d of %d bytes\n", noBytesRead, fileStat.st_size );
+        crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: read error: only got %lld of %lld bytes\n", noBytesRead, fileStat.st_size );
         return 0;
     }
     
