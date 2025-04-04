@@ -134,7 +134,7 @@ static int terminateReader( CrgDataStruct* crgData, int retCode );
 * @param opcode     the opcode resulting from the found callback
 * @return the callback method or NULL if none was found
 */
-static int  ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) ) ();
+static int  ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int ) ;
 
 /**
 * check whether the first tag contained in the buffer is and "end-of-section" tag
@@ -608,7 +608,7 @@ terminateReader( CrgDataStruct *crgData, int retCode )
 }
 
 
-static int ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) ) ()
+static int ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int )
 {
     const char* checkPtr = buffer;
     
@@ -628,7 +628,7 @@ static int ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* 
         if ( crgStrBeginsWithStrNoCase( checkPtr, cbs->tag ) )
         {
             *opcode = cbs->opcode;
-            return ( int( * ) () ) ( cbs->func );
+            return cbs->func;
         }
         ++cbs;
     }
@@ -1415,7 +1415,7 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
                 if ( isComment( buffer ) )
                     break;
                 
-                if ( ( func = ( int( * ) ( CrgDataStruct*, const char*, int ) ) ( scanTagsForCallback( buffer, cbs, &opcode ) ) ) )
+                if ( ( func = scanTagsForCallback( buffer, cbs, &opcode ) ) )
                 {
                     if ( !func( crgData, buffer, opcode ) )
                         crgMsgPrint( dCrgMsgLevelWarn, "parseFileHeader: Error parsing line %d.\n", lineOfFile );
