@@ -449,7 +449,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
 }
 
 int 
-crgEvalu2uvalid( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double* u )
+crgEvalu2uvalid( const CrgDataStruct *crgData, const CrgOptionsStruct* optionList, double* u )
 {
     if ( !crgData || !optionList || !u )
         return -1;

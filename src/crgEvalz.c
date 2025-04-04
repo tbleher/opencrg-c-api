@@ -63,7 +63,7 @@ int crgEvaluv2zPtr( CrgContactPointStruct *cp, double u, double v, double* z )
 
 
 int
-crgDataEvaluv2z( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u, double v, double* z )
+crgDataEvaluv2z( const CrgDataStruct *crgData, const CrgOptionsStruct* optionList, double u, double v, double* z )
 {
     size_t indexU         = 0;
     size_t indexV         = 0;

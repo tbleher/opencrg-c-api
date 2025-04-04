@@ -72,7 +72,7 @@ crgEvalxy2pk( int cpId, double x, double y, double* phi, double* curv )
 
 
 int
-crgDataEvaluv2pk( CrgDataStruct *crgData, CrgOptionsStruct* optionList, double u, double v, double* phi, double* curv )
+crgDataEvaluv2pk( const CrgDataStruct *crgData, const CrgOptionsStruct* optionList, double u, double v, double* phi, double* curv )
 {
     size_t indexU = 0;
     size_t nU;
