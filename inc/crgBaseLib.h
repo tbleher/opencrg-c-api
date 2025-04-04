@@ -140,6 +140,10 @@
 /* ====== TYPE DEFINITIONS ====== */
 
 /* ====== METHODS in crgMgr.c ====== */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
     /** 
     * destroy the data of the given data set
     * @param dataSetId    identifier of the applicable dataset
@@ -584,5 +588,10 @@
     * @param func   pointer to the user-defined method accepting message level and text
     */
     extern void crgMsgSetCallback( int ( *func ) ( int level, char* message ) );
+    
+#ifdef __cplusplus
+}
+#endif
+
     
 #endif /* _CRG_BASELIB_H */
