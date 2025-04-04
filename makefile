@@ -27,8 +27,8 @@ INC_DIR = inc
 COMP = gcc
 
 #Compiler options
-# CFLGS = -Wall -ggdb -ansi -I$(INC_DIR)	#all Warnings with debugging
-CFLGS = -Wall -O3 -ansi -I$(INC_DIR)            #all Warnings with level 3 optimizations
+# CFLGS = -std=c99 -Wall -ggdb -I$(INC_DIR)	#all Warnings with debugging
+CFLGS = -std=c99 -Wall -O3 -I$(INC_DIR)            #all Warnings with level 3 optimizations
 
 #Compiler call
 CC = $(COMP) $(CFLGS)
