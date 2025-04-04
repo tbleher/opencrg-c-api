@@ -71,7 +71,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
     {
         if ( crgData->channelZ[i].data )
         {
-            if ( !crgIsNanf( &( crgData->channelZ[i].data[0] ) ) )
+            if ( !isnan( crgData->channelZ[i].data[0] ) )
             {
                 zMeanF += crgData->channelZ[i].data[0];
                 nPtsF++;
@@ -85,7 +85,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
             
             if ( crgData->channelZ[i].info.size > 0 )
             {
-                if ( !crgIsNanf( &( crgData->channelZ[i].data[crgData->channelZ[i].info.size-1] ) ) )
+                if ( !isnan( crgData->channelZ[i].data[crgData->channelZ[i].info.size-1] ) )
                 {
                     zMeanL += crgData->channelZ[i].data[crgData->channelZ[i].info.size-1];
                     nPtsL++;
@@ -120,7 +120,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
     {
         for ( j = 0; j < crgData->channelZ[i].info.size; j++ )
         {
-            if ( !crgIsNanf( &( crgData->channelZ[i].data[j] ) ) )
+            if ( !isnan( crgData->channelZ[i].data[j] ) )
             {
                 if ( crgData->channelZ[i].data[j] < zMin )
                     zMin = crgData->channelZ[i].data[j];

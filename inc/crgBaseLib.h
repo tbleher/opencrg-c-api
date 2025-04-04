@@ -297,20 +297,6 @@
     */
     extern const char* crgGetReleaseInfo( void );
 
-    /**
-    * wrap the isnan() functionality
-    * @param dValue	the double value which is to be checked for NaN
-    * @return 1 if value is NaN
-    */
-    extern int crgIsNan( double* dValue );
-
-    /**
-    * wrap the isnan() functionality
-    * @param fValue	the float value which is to be checked for NaN
-    * @return 1 if value is NaN
-    */
-    extern int crgIsNanf( float* dValue );
-
 /* ====== METHODS in crgMsg.c ====== */
     /**
     * set the maximum level of messages that will be handled,

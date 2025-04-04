@@ -1856,7 +1856,7 @@ readData( CrgDataStruct* crgData )
         /* crgMsgPrint( dCrgMsgLevelNotice, "readData: channelZ at cross section no. %ld\n", nRec ); */
         for ( i = 0; i < crgData->channelV.info.size; i++ )
         {
-            if ( crgIsNan( &( crgData->admin.recordBuffer[crgData->channelZ[i].info.index] ) ) )
+            if ( isnan( crgData->admin.recordBuffer[crgData->channelZ[i].info.index] ) )
                 crgSetNanf( &( crgData->channelZ[i].data[nRec] ) );
             else
                 crgData->channelZ[i].data[nRec] = ( float ) crgData->admin.recordBuffer[crgData->channelZ[i].info.index];
@@ -1923,7 +1923,7 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
         for ( v = 1; v < crgData->channelV.info.size; v++ )
         {
             
-            if ( crgIsNanf( &( crgData->channelZ[v].data[i] ) ) )
+            if ( isnan( crgData->channelZ[v].data[i] ) )
             {
                 nan++;
                 
@@ -1936,7 +1936,7 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
                     case dCrgGridNaNKeepLast:
                         /* --- copy data from right neighbor --- */
                         memcpy( &( crgData->channelZ[v].data[i] ), &( crgData->channelZ[v-1].data[i] ), sizeof( crgData->channelZ[v].data[0] ) );
-                        if ( !crgIsNanf( &( crgData->channelZ[v].data[i] ) ) && !offsetApplied )
+                        if ( !isnan( crgData->channelZ[v].data[i] ) && !offsetApplied )
                         {
                             crgData->channelZ[v].data[i] += ( float ) offset;
                             offsetApplied = 1;
@@ -1955,7 +1955,7 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
         offsetApplied = 0;
         for ( v = crgData->channelV.info.size-1; v > 0; v-- )
         {
-            if ( crgIsNanf( &( crgData->channelZ[v-1].data[i] ) ) && !crgIsNanf( &( crgData->channelZ[v].data[i] ) ) )
+            if ( isnan( crgData->channelZ[v-1].data[i] ) && !isnan( crgData->channelZ[v].data[i] ) )
             {
                 nan++;
                 
@@ -1969,7 +1969,7 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
                         /* --- copy data from right neighbor --- */
                         memcpy( &( crgData->channelZ[v-1].data[i] ), &( crgData->channelZ[v].data[i] ), sizeof( crgData->channelZ[v-1].data[0] ) );
                         
-                        if ( !crgIsNanf( &( crgData->channelZ[v-1].data[i] ) ) && !offsetApplied )
+                        if ( !isnan( crgData->channelZ[v-1].data[i] ) && !offsetApplied )
                         {
                             crgData->channelZ[v-1].data[i] += ( float ) offset;
                             offsetApplied = 1;
@@ -2264,7 +2264,7 @@ normalizeZ( CrgDataStruct* crgData )
     /* note: prepare may be called multiple times, so take old mean value into account */
     /* only use values not being NaNs! */
     for ( i = 0; i < crgData->channelV.info.size; i++ )
-        if ( !crgIsNanf( &( crgData->channelZ[i].data[0] ) ) )
+        if ( !isnan( crgData->channelZ[i].data[0] ) )
         {
             zMean += crgData->channelZ[i].data[0] + crgData->channelZ[i].info.mean;
             nValues++;
@@ -2279,7 +2279,7 @@ normalizeZ( CrgDataStruct* crgData )
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
         for ( j = 0; j < crgData->channelZ[i].info.size; j++ )
-            if ( !crgIsNanf( &( crgData->channelZ[i].data[j] ) ) )
+            if ( !isnan( crgData->channelZ[i].data[j] ) )
                 crgData->channelZ[i].data[j] = crgData->channelZ[i].data[j] + ( float ) ( crgData->channelZ[i].info.mean - zMean );
         crgData->channelZ[i].info.mean = zMean;
     }

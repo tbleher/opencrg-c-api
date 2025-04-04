@@ -635,14 +635,14 @@ crgDataScaleChannel( CrgChannelBaseStruct* channel, double factor, int valuesOnl
         {
             float* data = ( float* ) ( channel->data );
             for ( i = 0; i < channel->info.size; i++ )
-                if ( !crgIsNanf( & data[i] ) )
+                if ( !isnan( data[i] ) )
                     data[i] *= ( float ) factor;
         }
         else
         {
             double* data = ( double* ) ( channel->data );
             for ( i = 0; i < channel->info.size; i++ )
-                if ( !crgIsNan( &data[i] ) )
+                if ( !isnan( data[i] ) )
                     data[i] *= factor;
         }
     }
@@ -724,23 +724,6 @@ crgGetReleaseInfo( void )
     return "OpenCRG C-API release 1.1.2, April 17, 2018";
 }
 
-int
-crgIsNan( double *dValue )
-{
-    CrgNanUnionDouble checkVal;
-    
-    if ( !dValue )
-        return 0;
-    
-    /* --- assign the value that is to be checked --- */
-    memcpy( &checkVal.dVal, dValue, sizeof( double ) );
-    
-    if ( mCrgBigEndian )
-        return ( checkVal.iVal[0] & 0x7ff80000 ) >= 0x7ff80000;
-    
-    return ( checkVal.iVal[1] & 0x7ff80000 ) >= 0x7ff80000;
-}
-
 void
 crgSetNan( double* dValue )
 {
@@ -764,7 +747,7 @@ crgSetNan( double* dValue )
     memcpy( &checkVal.dVal, dValue, sizeof( double ) );
     
     crgMsgPrint( dCrgMsgLevelDebug, "crgSetNan: checkVal = 0x%x / 0x%x, isNan = %d\n", 
-                                     checkVal.iVal[0], checkVal.iVal[1], crgIsNan( dValue ) );
+                                     checkVal.iVal[0], checkVal.iVal[1], isnan( *dValue ) );
 }
 
 void
@@ -776,20 +759,6 @@ crgSetNanf( float* fValue )
         return;
     
     memcpy( fValue, &myNan, sizeof( float ) );
-}
-
-int
-crgIsNanf( float *fValue )
-{
-    CrgNanUnionFloat checkVal;
-    
-    if ( !fValue )
-        return 0;
-    
-    /* --- assign the value that is to be checked --- */
-    memcpy( &checkVal.fVal, fValue, sizeof( float ) );
-    
-    return ( checkVal.iVal & 0x7fc00000 ) >= 0x7fc00000;
 }
 
 void 
