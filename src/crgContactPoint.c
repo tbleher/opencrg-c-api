@@ -615,7 +615,7 @@ crgContactPointPrintHistory( CrgContactPointStruct *cp, double x, double y )
         
         dist2 = dx * dx + dy * dy;
 
-        crgMsgPrint( dCrgMsgLevelNotice, "entry %d: x / y = %.3f / %.3f, dist2 = %.3lf, index = %d\n", 
+        crgMsgPrint( dCrgMsgLevelNotice, "entry %d: x / y = %.3f / %.3f, dist2 = %.3lf, index = %zu\n",
                                          i, cp->history.entry[i].x, cp->history.entry[i].y, dist2, cp->history.entry[i].index  );
     }
     

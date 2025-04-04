@@ -1094,7 +1094,7 @@ decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
         }
         else if ( ( tmpPtr = findToken( bufPtr, "slope" ) ) )
         {
-            crgMsgPrint( dCrgMsgLevelDebug, "decodeDefined: found slope channel, index = %d\n", crgData->noChannels );
+            crgMsgPrint( dCrgMsgLevelDebug, "decodeDefined: found slope channel, index = %zu\n", crgData->noChannels );
             tgtChannel = &( crgData->channelSlope );
             unitStr = "m/m";
         }
@@ -1124,9 +1124,9 @@ decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
         
     /* --- ok, we seem to have another valid channel definition --- */
     crgData->noChannels++;
-    
-    crgMsgPrint( dCrgMsgLevelDebug, "decodeDefined: buffer = <%s>, noChannels = %d\n", buffer, crgData->noChannels );
-    
+
+    crgMsgPrint( dCrgMsgLevelDebug, "decodeDefined: buffer = <%s>, noChannels = %zu\n", buffer, crgData->noChannels );
+
     return 1;
 }
 
@@ -2007,7 +2007,7 @@ crgLoaderHandleNaNs( CrgDataStruct* crgData, int mode, double offset )
     
     crgMsgPrint( dCrgMsgLevelNotice, "crgLoaderHandleNaNs: Summary of NaN handling information:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "                     NaNs in crg data replaced by constant extrapolation.\n" );
-    crgMsgPrint( dCrgMsgLevelNotice, "                     total NaNs in data [-]:        %ld\n", totalNaN );
+    crgMsgPrint( dCrgMsgLevelNotice, "                     total NaNs in data [-]:        %d\n", totalNaN );
     crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from left [-]:  %ld\n", crgData->channelV.info.size - minIndexLR );
     crgMsgPrint( dCrgMsgLevelNotice, "                     max. NaN count from right [-]: %ld\n", maxIndexRL );
 }
@@ -2099,7 +2099,7 @@ calcRefLine( CrgDataStruct* crgData )
         /*
         crgMsgPrint( dCrgMsgLevelNotice, "calcRefLine: resulting reference line:\n" );
         for ( i = 0; i < crgData->channelPhi.info.size; i++ )
-            crgMsgPrint( dCrgMsgLevelNotice, "calcRefLine: phi[%d] = %.6f, x[%d] = %.6f / y[%d] = %.6f\n", 
+            crgMsgPrint( dCrgMsgLevelNotice, "calcRefLine: phi[%d] = %.6f, x[%d] = %.6f / y[%d] = %.6f\n",
                                              i, crgData->channelPhi.data[i], i, crgData->channelX.data[i], i, crgData->channelY.data[i] );
         */
     }
@@ -2193,8 +2193,8 @@ calcRefLineZ( CrgDataStruct* crgData )
             slope = crgData->channelSlope.info.defined ? crgData->channelSlope.data[i+1] : crgData->channelSlope.info.first;
             
             crgData->channelRefZ.data[i+1] = crgData->channelRefZ.data[i] + slope * crgData->channelU.info.inc;
-    
-            crgMsgPrint( dCrgMsgLevelDebug, "calcRefLineZ: crgData->channelRefZ.data[%d] = %.5f\n", i, crgData->channelRefZ.data[i] );
+
+            crgMsgPrint( dCrgMsgLevelDebug, "calcRefLineZ: crgData->channelRefZ.data[%zu] = %.5f\n", i, crgData->channelRefZ.data[i] );
         }
         /* --- remember last value --- */
         crgData->channelRefZ.info.last = crgData->channelRefZ.data[crgData->channelRefZ.info.size-1];
@@ -2607,7 +2607,7 @@ crgCheckOpts( CrgDataStruct* crgData )
     {
         if ( ctol < ceps * cinc || ctol > 0.5 * cinc )
         {
-            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"check_tol\": %d", ctol );
+            crgMsgPrint( dCrgMsgLevelFatal, "crgCheckOpts: illegal option data \"check_tol\": %f", ctol );
             return 0;
         }
     }
@@ -2912,7 +2912,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
    
     if ( noBytesRead < ( size_t ) fileStat.st_size )
     {
-        crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: read error: only got %lld of %lld bytes\n", noBytesRead, fileStat.st_size );
+        crgMsgPrint( dCrgMsgLevelFatal,  "crgLoaderAddFile: read error: only got %zu of %ld bytes\n", noBytesRead, fileStat.st_size );
         return 0;
     }
     
@@ -3100,10 +3100,10 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
         case dOpcodeIncludeDone:
             {
                 CrgAdminStruct adminBackup;
-                
-                crgMsgPrint( dCrgMsgLevelNotice, "--------------------------------------\n", filename );
+
+                crgMsgPrint( dCrgMsgLevelNotice, "--------------------------------------\n" );
                 crgMsgPrint( dCrgMsgLevelNotice, "decodeIncludeFile: importing file <%s>\n", filename );
-                
+
                 /* hold a copy of the administration structure */
                 memcpy( &adminBackup, &( crgData->admin ), sizeof( CrgAdminStruct ) );
                 crgData->admin.sectionType = dFileSectionNone;
@@ -3120,8 +3120,8 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
                 
                 /* restore the administration structure */
                 memcpy( &( crgData->admin ), &adminBackup, sizeof( CrgAdminStruct ) );
-                
-                crgMsgPrint( dCrgMsgLevelNotice, "--------------------------------------\n", filename );
+
+                crgMsgPrint( dCrgMsgLevelNotice, "--------------------------------------\n" );
                 crgMsgPrint( dCrgMsgLevelNotice, "decodeIncludeFile: continuing with previous file\n" );
                 
                 /* reset the filename for successive read operations */
