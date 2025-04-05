@@ -289,7 +289,7 @@ static int decodeRecord( CrgDataStruct* crgData, char *dataPtr, size_t length );
 * get the next data record and decode it
 * @param  crgData     pointer to the CRG data set which is to be altered
 * @param  dataPtr     pointer to the current record data (will be altered)
-* @param  length      number of bytes left for decoding (will be altered)
+* @param  nBytesLeft  number of bytes left for decoding (will be altered)
 * @return 1 upon success, otherwise 0
 */
 static int decodeNextRecord( CrgDataStruct* crgData, char **dataPtr, size_t *nBytesLeft );

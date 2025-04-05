@@ -513,14 +513,14 @@ extern int mCrgBigEndian;             /* endian-ness of machine */
 /* ====== METHODS in crgOptionMgmt.c ====== */
     /**
     * returns the name of an option as a string
-    * @param id         numeric identifier of the option
+    * @param optionId   numeric identifier of the option
     * @return name of the option or "unknown"
     */
     extern const char* crgOptionGetName( unsigned int optionId );
 
     /**
     * returns the type of an option as integer value (see symbolic constants)
-    * @param id         numeric identifier of the option
+    * @param optionId   numeric identifier of the option
     * @return type of the option (fallback: integer option)
     */
     extern int crgOptionGetType( unsigned int optionId );

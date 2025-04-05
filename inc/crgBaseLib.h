@@ -210,9 +210,9 @@ extern "C"
     * set/add an integer value modifier to be applied to the data set
     * CRG data using the indicated data point
     * @param  dataSetId    identifier of the applicable dataset
-    * @param  modId        identifier of the modifier which is to be set/added
+    * @param  optionId     identifier of the modifier which is to be set/added
     *                      (see defines above: dCrgModXXXX)
-    * @param  modValue     (new) value of the indicated modifier (may be a mask,
+    * @param  optionValue  (new) value of the indicated modifier (may be a mask,
     *                      depending on the type)
     * @return 1 if successful, otherwise 0
     */
@@ -222,9 +222,9 @@ extern "C"
     * set/add a double value option to be applied while handling / evaluating
     * CRG data using the indicated data point
     * @param  dataSetId    identifier of the applicable dataset
-    * @param  modId        identifier of the modifier which is to be set/added
+    * @param  optionId     identifier of the modifier which is to be set/added
     *                      (see defines above: dCrgModXXXX)
-    * @param  modValue     (new) value of the indicated modifier
+    * @param  optionValue  (new) value of the indicated modifier
     * @return 1 if successful, otherwise 0
     */
     extern int crgDataSetModifierSetDouble( int dataSetId, unsigned int optionId, double optionValue );
@@ -232,22 +232,22 @@ extern "C"
     /**
     * get the value of an integer option
     * @param  dataSetId    identifier of the applicable dataset
-    * @param  modId        identifier of the modifier which is to be set/added
+    * @param  optionId     identifier of the modifier which is to be set/added
     *                      (see defines above: dCrgModXXXX)
-    * @param  modValue     pointer to memory location for return value
+    * @param  optionValue  pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgDataSetModifierGetInt( int dataSetId, unsigned int optionId, int* modValue );
+    extern int crgDataSetModifierGetInt( int dataSetId, unsigned int optionId, int* optionValue );
 
     /**
     * get the value of a double option
     * @param  dataSetId    identifier of the applicable dataset
-    * @param  modId        identifier of the modifier which is to be set/added
+    * @param  optionId     identifier of the modifier which is to be set/added
     *                      (see defines above: dCrgModXXXX)
-    * @param  modValue     pointer to memory location for return value
+    * @param  optionValue  pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgDataSetModifierGetDouble( int dataSetId, unsigned int optionId, double* modValue );
+    extern int crgDataSetModifierGetDouble( int dataSetId, unsigned int optionId, double* optionValue );
 
     /**
     * remove a modifier from the data set settings's modifier list and apply the
@@ -546,9 +546,10 @@ extern "C"
     /**
     * set a user-defined callback method to allocate some space from memory
     * @param func   pointer to the user-defined method
-    * @param nmemb  number of members to allocate
-    * @param size   size of a single member
-    * @return pointer to allocated memory location
+    * The user-defined method takes two parameters:
+    * - nmemb  number of members to allocate
+    * - size   size of a single member
+    * It returns a pointer to allocated memory location
     */
     extern void crgCallocSetCallback( void* ( *func ) (size_t nmemb, size_t size ) );
 
@@ -563,9 +564,10 @@ extern "C"
     /**
     * set a user-defined callback method to re-allocate space from memory,
     * @param func   pointer to the user-defined method
-    * @param ptr    pointer to existing memory location
-    * @param size   size of a single member
-    * @return pointer to allocated memory location
+    * The user-defined method takes two parameters:
+    * - ptr    pointer to existing memory location
+    * - size   size of a single member
+    * It returns a pointer to allocated memory location
     */
     extern void crgReallocSetCallback( void* ( *func ) (void* ptr, size_t size) );
 
@@ -578,7 +580,7 @@ extern "C"
     /**
     * set a user-defined callback method to free previously allocated space from memory,
     * @param func   pointer to the user-defined method
-    * @param ptr    pointer to existing memory location
+    * The user-defined method takes a pointer to existing memory location
     */
     extern void crgFreeSetCallback( void ( *func ) ( void* ptr ) );
 
