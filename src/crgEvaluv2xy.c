@@ -34,7 +34,7 @@
 
 /* ====== LOCAL METHODS ====== */
 /**
-* normlize a 2d vector 
+* normlize a 2d vector
 * @param vec    pointer to the co-ordinate array
 */
 static void normalizeVector2( double* vec );
@@ -48,17 +48,17 @@ crgEvaluv2xy( int cpId, double u, double v, double* x, double* y )
 
     if ( !( cp = crgContactPointGetFromId( cpId ) ) )
         return 0;
-   
+
     /* --- remember the input and compute the fallback solution --- */
     cp->u = u;
     cp->v = v;
 
     retVal = crgDataEvaluv2xy( cp->crgData, &( cp->options ), cp->u, cp->v, &( cp->x ), &( cp->y ) );
-    
+
     /* --- transfer the result --- */
     *x = cp->x;
     *y = cp->y;
-    
+
     return retVal;
 }
 
@@ -82,29 +82,29 @@ crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u
     /* --- compute the fallback solution --- */
     *x = u;
     *y = v;
-    
+
     if ( !crgData )
         return 1;
     else if ( !( crgData->channelX.info.valid ) )
         return 1;
-    
+
     /* on closed reference lines, u must be adapted */
     crgEvalu2uvalid( crgData, optionList, &u );
-    
+
     /* find u interval in constantly spaced u axis */
     frac = ( u - crgData->channelU.info.first ) / crgData->channelU.info.inc;
-    
+
     if ( frac < 0.0 )
         index = 0;
     else
     {
         index = ( size_t ) frac;
-        
+
         /* data dimension is at least 2x2 */
         if ( index >= crgData->channelX.info.size - 1 )
             index = crgData->channelX.info.size - 2;
     }
-    
+
     /* --- remaining u fraction --- */
     frac = frac - index;
 
@@ -129,34 +129,34 @@ crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u
     /* --- get endpoints at center line --- */
     p1[0] = crgData->channelX.data[index];
     p1[1] = crgData->channelY.data[index];
-    
+
     p2[0] = crgData->channelX.data[index+1];
     p2[1] = crgData->channelY.data[index+1];
-    
+
     /* --- normal on P1P2 --- */
     n12[0] = - ( p2[1] - p1[1] );
     n12[1] =     p2[0] - p1[0];
     normalizeVector2( n12 );
-    
+
     /* --- calculate additional points A and B --- */
     /* --- normal n1 through P1, default is same as n12 --- */
     n1[0] = n12[0];
     n1[1] = n12[1];
-    
+
     /* if previous point P0 exists, then take P0 into account */
     if ( index > 0 )
     {
         p0[0] = crgData->channelX.data[index-1];
         p0[1] = crgData->channelY.data[index-1];
-        
+
         n1[0] = - ( p2[1] - p0[1] );
         n1[1] =     p2[0] - p0[0];
         normalizeVector2( n1 );
-        
+
     }
     /* --- now for point A --- */
     dotProd = ( n1[0] * n12[0] ) + ( n1[1] * n12[1] );
-    
+
     if ( fabs( dotProd ) > 1.0e-10 )
     {
         n1[0] /= dotProd;
@@ -164,25 +164,25 @@ crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u
     }
     a[0] = p1[0] + v * n1[0];
     a[1] = p1[1] + v * n1[1];
-    
+
     /* --- normal n2 through P2, default is same as n12 --- */
     n2[0] = n12[0];
     n2[1] = n12[1];
-    
+
     /* if next point P3 exists, then take P3 into account */
     if ( index < crgData->channelX.info.size - 2 )
     {
         p3[0] = crgData->channelX.data[index+2];
         p3[1] = crgData->channelY.data[index+2];
-        
+
         n2[0] = - ( p3[1] - p1[1] );
         n2[1] =     p3[0] - p1[0];
         normalizeVector2( n2 );
-        
+
     }
     /* --- now for point B --- */
     dotProd = ( n2[0] * n12[0] ) + ( n2[1] * n12[1] );
-    
+
     if ( fabs( dotProd ) > 1.0e-10 )
     {
         n2[0] /= dotProd;
@@ -190,10 +190,10 @@ crgDataEvaluv2xy( CrgDataStruct* crgData, CrgOptionsStruct* optionList, double u
     }
     b[0] = p2[0] + v * n2[0];
     b[1] = p2[1] + v * n2[1];
-    
+
     ab[0] = b[0] - a[0];
     ab[1] = b[1] - a[1];
-    
+
     *x = a[0] + frac * ab[0];
     *y = a[1] + frac * ab[1];
 
@@ -204,10 +204,10 @@ static void
 normalizeVector2( double* vec )
 {
     double length = sqrt( vec[0] * vec[0] + vec[1] * vec[1] );
-    
+
     if ( length < 1.0e-10 )
         return;
-    
+
     vec[0] /= length;
     vec[1] /= length;
 }

@@ -37,38 +37,38 @@ crgMsgSetLevel( int level )
 {
     if ( level >= dCrgMsgLevelNone && level <= dCrgMsgLevelDebug )
         mLevel = level;
-    
+
     /* --- update the setting in the portability libraries --- */
     crgPortSetMsgLevel( mLevel );
 }
-   
-int 
+
+int
 crgMsgGetLevel( void )
 {
     return mLevel;
 }
-   
-const char* 
+
+const char*
 crgMsgGetLevelName( int level )
 {
     if ( level == dCrgMsgLevelNone )
         return "NONE";
-    
+
     if ( level == dCrgMsgLevelFatal )
         return "FATAL";
 
     if ( level == dCrgMsgLevelWarn )
         return "WARNING";
-   
+
     if ( level == dCrgMsgLevelNotice )
         return "NOTICE";
-    
+
     if ( level == dCrgMsgLevelInfo )
         return "INFO";
-    
+
     if ( level == dCrgMsgLevelDebug )
         return "DEBUG";
-    
+
     return "unknown level";
 }
 
@@ -89,7 +89,7 @@ crgMsgIsPrintable( int level )
 {
     if ( mLevel < level )
         return 0;
-    
+
     return crgPortMsgIsPrintable( level );
 }
 

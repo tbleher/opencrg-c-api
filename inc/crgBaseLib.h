@@ -1,7 +1,7 @@
 /* ===================================================
  *  file:       crgBaseLib.h
  * ---------------------------------------------------
- *  purpose:	interface definitions for the 
+ *  purpose:	interface definitions for the
  *              OpenCRG base library
  * ---------------------------------------------------
  *  based on routines by Dr. Jochen Rauh, Daimler AG
@@ -43,7 +43,7 @@
 #define dCrgMsgLevelDebug  5
 
 /**
-* CRG options for data handling and evaluation 
+* CRG options for data handling and evaluation
 * ATTENTION: IDs MUST NOT overlap with modifier IDs (see dCrgModxxx)
 */
 #define dCrgCpOptionBorderModeU          1       /* [integer], extrapolation / repeat mode for z values in u direction    [dCrgBorderModexxx] */
@@ -90,7 +90,7 @@
 #define dCrgCurvRefLine              1   /* keep curvature value on reference line           */
 
 /**
-* CRG modifiers for modification of data sets 
+* CRG modifiers for modification of data sets
 * ATTENTION: IDs MUST NOT overlap with option IDs (see dCrgCpOptionxxx)
 */
 #define dCrgModScaleZ              21     /* [double], scale factor for grid data z values                            [-] */
@@ -127,7 +127,7 @@
 /**
 * Mode definitions for modifier: dCrgModGridNaNMode
 */
-#define dCrgGridNaNKeep             0   /* keep existing NaNs in grid         */     
+#define dCrgGridNaNKeep             0   /* keep existing NaNs in grid         */
 #define dCrgGridNaNSetZero          1   /* replace NaNs with zeros            */
 #define dCrgGridNaNKeepLast         2   /* keep last valid boundary value     */      /* default */
 
@@ -144,31 +144,31 @@
 extern "C"
 {
 #endif
-    /** 
+    /**
     * destroy the data of the given data set
     * @param dataSetId    identifier of the applicable dataset
     * @return 1 if successful, 0 if failed
     */
     extern int crgDataSetRelease( int dataSetId );
-    
+
     /**
     * print information contained in the CRG file's header
     * @param dataSetId    identifier of the applicable dataset
     */
     extern void crgDataPrintHeader( int dataSetId );
-    
+
     /**
     * print information about the CRG file's channels
     * @param dataSetId    identifier of the applicable dataset
     */
     extern void crgDataPrintChannelInfo( int dataSetId );
-    
+
     /**
     * print information about the CRG road
     * @param dataSetId    identifier of the applicable dataset
     */
     extern void crgDataPrintRoadInfo( int dataSetId );
-    
+
     /**
     * get the u co-ordinate range of a CRG data set
     * @param dataSetId    identifier of the applicable dataset
@@ -177,7 +177,7 @@ extern "C"
     * @return 1 upon success, otherwise 0
     */
     extern int crgDataSetGetURange( int dataSetId, double *uMin, double *uMax );
-    
+
     /**
     * get the v co-ordinate range of a CRG data set
     * @param dataSetId    identifier of the applicable dataset
@@ -186,7 +186,7 @@ extern "C"
     * @return 1 upon success, otherwise 0
     */
     extern int crgDataSetGetVRange( int dataSetId, double *vMin, double *vMax );
-    
+
     /**
     * get the u and v co-ordinate increments
     * @param dataSetId    identifier of the applicable dataset
@@ -195,7 +195,7 @@ extern "C"
     * @return 1 upon success, otherwise 0
     */
     extern int crgDataSetGetIncrements( int dataSetId, double *uInc, double *vInc );
-   
+
     /**
     * get closed track utility data
     * @param dataSetId    identifier of the applicable dataset
@@ -216,10 +216,10 @@ extern "C"
     *                      depending on the type)
     * @return 1 if successful, otherwise 0
     */
-    extern int crgDataSetModifierSetInt( int dataSetId, unsigned int optionId, int optionValue );    
+    extern int crgDataSetModifierSetInt( int dataSetId, unsigned int optionId, int optionValue );
 
     /**
-    * set/add a double value option to be applied while handling / evaluating 
+    * set/add a double value option to be applied while handling / evaluating
     * CRG data using the indicated data point
     * @param  dataSetId    identifier of the applicable dataset
     * @param  modId        identifier of the modifier which is to be set/added
@@ -227,7 +227,7 @@ extern "C"
     * @param  modValue     (new) value of the indicated modifier
     * @return 1 if successful, otherwise 0
     */
-    extern int crgDataSetModifierSetDouble( int dataSetId, unsigned int optionId, double optionValue );    
+    extern int crgDataSetModifierSetDouble( int dataSetId, unsigned int optionId, double optionValue );
 
     /**
     * get the value of an integer option
@@ -237,7 +237,7 @@ extern "C"
     * @param  modValue     pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgDataSetModifierGetInt( int dataSetId, unsigned int optionId, int* modValue );    
+    extern int crgDataSetModifierGetInt( int dataSetId, unsigned int optionId, int* modValue );
 
     /**
     * get the value of a double option
@@ -247,7 +247,7 @@ extern "C"
     * @param  modValue     pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgDataSetModifierGetDouble( int dataSetId, unsigned int optionId, double* modValue );    
+    extern int crgDataSetModifierGetDouble( int dataSetId, unsigned int optionId, double* modValue );
 
     /**
     * remove a modifier from the data set settings's modifier list and apply the
@@ -257,45 +257,45 @@ extern "C"
     *                      (see defines above: dCrgModXXXX)
     * @return 1 if successful, otherwise 0
     */
-    extern int crgDataSetModifierRemove( int dataSetId, unsigned int modId );    
+    extern int crgDataSetModifierRemove( int dataSetId, unsigned int modId );
 
     /**
     * remove all modifiers from the data set's modifier list
     * @param  dataSetId    identifier of the applicable dataset
     * @return 1 if successful, otherwise 0
     */
-    extern int crgDataSetModifierRemoveAll( int dataSetId );    
+    extern int crgDataSetModifierRemoveAll( int dataSetId );
 
     /**
     * print the data set's current set of modifiers
     * @param  dataSetId    identifier of the applicable dataset
     */
     extern void crgDataSetModifiersPrint( int dataSetId );
-    
+
     /**
     * apply all defined modifiers once to the given data set and remove them afterwards
     * @param  dataSetId    identifier of the applicable dataset
     */
     extern void crgDataSetModifiersApply( int dataSetId );
-    
+
     /**
     * set the default modifiers for a data set
     * @param  dataSetId    identifier of the applicable dataset
     */
     extern void crgDataSetModifierSetDefault( int dataSetId );
-    
+
     /**
     * set the default options for a data set; these will be transfered to
     * contact points which are derived from the data set
     * @param  dataSetId    identifier of the applicable dataset
     */
     extern void crgDataSetOptionSetDefault( int dataSetId );
-    
+
     /**
     * release all data held by the crg library
     */
     extern void crgMemRelease( void );
-    
+
     /**
     * get the release string indicating the current version
     */
@@ -309,19 +309,19 @@ extern "C"
     * @param level  new value for maximum handled criticality
     */
     extern void crgMsgSetLevel( int level );
-    
-    /** 
+
+    /**
     * set the maximum number of warning / debug messages to be handled
     * @param maxNo  maximum number of messages to be handled (-1 for unlimited)
     */
     extern void crgMsgSetMaxWarnMsgs( int maxNo );
-    
-    /** 
+
+    /**
     * set the maximum number of log messages to be handled
     * @param maxNo  maximum number of messages to be handled (-1 for unlimited)
     */
     extern void crgMsgSetMaxLogMsgs( int maxNo );
-    
+
     /**
     * query whether messages of a certain level are to be printed (this may
     * change during runtime due to a restriction in the number of messages
@@ -330,7 +330,7 @@ extern "C"
     * @return 0 if message of the given level may be printed
     */
     extern int crgMsgIsPrintable( int level );
-    
+
 /* ====== METHODS in crgLoader.c ====== */
     /**
     * check CRG data for consistency and accuracy
@@ -345,7 +345,7 @@ extern "C"
     * @return identifier of the resulting data set or 0 if not successful
     */
     extern int crgLoaderReadFile( const char* filename );
-    
+
 /* ====== METHODS in crgContactPoint.c ====== */
     /**
     * create a new contact point working on the indicated data set
@@ -370,7 +370,7 @@ extern "C"
     extern void crgContactPointDeleteAll( int dataSetId );
 
     /**
-    * set/add an integer value option to be applied while handling / evaluating 
+    * set/add an integer value option to be applied while handling / evaluating
     * CRG data using the indicated data point
     * @param  cpId         id of the contact point which is to be configured
     * @param  optionId     identifier of the option which is to be set/added
@@ -379,10 +379,10 @@ extern "C"
     *                      depending on the option type)
     * @return 1 if successful, otherwise 0
     */
-    extern int crgContactPointOptionSetInt( int cpId, unsigned int optionId, int optionValue );    
+    extern int crgContactPointOptionSetInt( int cpId, unsigned int optionId, int optionValue );
 
     /**
-    * set/add a double value option to be applied while handling / evaluating 
+    * set/add a double value option to be applied while handling / evaluating
     * CRG data using the indicated data point
     * @param  cpId         id of the contact point which is to be configured
     * @param  optionId     identifier of the option which is to be set/added
@@ -390,7 +390,7 @@ extern "C"
     * @param  optionValue  (new) value of the indicated option
     * @return 1 if successful, otherwise 0
     */
-    extern int crgContactPointOptionSetDouble( int cpId, unsigned int optionId, double optionValue );    
+    extern int crgContactPointOptionSetDouble( int cpId, unsigned int optionId, double optionValue );
 
     /**
     * get the value of an integer option
@@ -400,7 +400,7 @@ extern "C"
     * @param  optionValue  pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgContactPointOptionGetInt( int cpId, unsigned int optionId, int* optionValue );    
+    extern int crgContactPointOptionGetInt( int cpId, unsigned int optionId, int* optionValue );
 
     /**
     * get the value of a double option
@@ -410,7 +410,7 @@ extern "C"
     * @param  optionValue  pointer to memory location for return value
     * @return 1 if option is set, otherwise 0
     */
-    extern int crgContactPointOptionGetDouble( int cpId, unsigned int optionId, double* optionValue );    
+    extern int crgContactPointOptionGetDouble( int cpId, unsigned int optionId, double* optionValue );
 
     /**
     * remove an option from the contact point's option settings and apply the
@@ -420,28 +420,28 @@ extern "C"
     *                      (see defines above: dCrgCpOptionXXXX)
     * @return 1 if successful, otherwise 0
     */
-    extern int crgContactPointOptionRemove( int cpId, unsigned int optionId );    
+    extern int crgContactPointOptionRemove( int cpId, unsigned int optionId );
 
     /**
     * remove all options from the contact point's option settings
     * @param  cpId         id of the contact point which is to be configured
     * @return 1 if successful, otherwise 0
     */
-    extern int crgContactPointOptionRemoveAll( int cpId );    
+    extern int crgContactPointOptionRemoveAll( int cpId );
 
     /**
     * print the contact point's current set of options
     * @param  cpId id of the contact point whose options are to be printed
     */
     extern void crgContactPointOptionsPrint( int cpId );
-    
+
     /**
     * set the default options to be applied when using a contact point for data
     * evaluation etc.
     * @param  cpId index of the contact point which is to be modified
     */
     extern void crgContactPointSetDefaultOptions( int cpId );
-    
+
     /**
     * set the size of a contact point's history
     * @param  cpId         index of the contact point which is to be modified
@@ -468,7 +468,7 @@ extern "C"
     * @return 1 if successful, otherwise 0
     */
     extern int crgEvalxy2uv( int cpId, double x, double y, double* u, double* v );
-         
+
 /* ====== METHODS in crgEvaluv2xy.c ====== */
     /**
     * convert a given (u,v) position into the corresponding (x,y) position
@@ -480,7 +480,7 @@ extern "C"
     * @return 1 if successful, otherwise 0
     */
     extern int crgEvaluv2xy( int cpId, double u, double v, double* x, double* y );
-     
+
 /* ====== METHODS in crgEvalz.c ====== */
     /**
     * compute the z value at a given (u,v) position using bilinear interpolation
@@ -501,7 +501,7 @@ extern "C"
     * @return 1 if successful, otherwise 0
     */
     extern int crgEvalxy2z( int cpId, double x, double y, double* z );
-      
+
 /* ====== METHODS in crgEvalpk.c ====== */
     /**
     * compute the heading and curvature value at a given (u,v) position and store
@@ -514,7 +514,7 @@ extern "C"
     * @return 1 if successful, otherwise 0
     */
     extern int crgEvaluv2pk( int cpId, double u, double v, double* phi, double* curv );
-    
+
     /**
     * compute the heading and curvature value at a given (x,y) position and store
     * it in the contact point structure
@@ -526,7 +526,7 @@ extern "C"
     * @return 1 if successful, otherwise 0
     */
     extern int crgEvalxy2pk( int cpId, double x, double y, double* phi, double* curv );
-      
+
 /* ====== METHODS in crgPortability.c ====== */
     /**
     * print a message with a defined criticality level
@@ -534,7 +534,7 @@ extern "C"
     * @param format variable argument list as for standard printf
     */
     extern void crgMsgPrint( int level, const char *format, ...);
-    
+
     /**
     * allocate some space from memory, usually equal to calloc()
     * @param nmemb  number of members to allocate
@@ -551,7 +551,7 @@ extern "C"
     * @return pointer to allocated memory location
     */
     extern void crgCallocSetCallback( void* ( *func ) (size_t nmemb, size_t size ) );
-    
+
     /**
     * re-allocate space from memory, usually equal to realloc()
     * @param ptr    pointer to existing memory location
@@ -559,7 +559,7 @@ extern "C"
     * @return pointer to allocated memory location
     */
     extern void* crgRealloc( void* ptr, size_t size );
-    
+
     /**
     * set a user-defined callback method to re-allocate space from memory,
     * @param func   pointer to the user-defined method
@@ -588,10 +588,10 @@ extern "C"
     * @param func   pointer to the user-defined method accepting message level and text
     */
     extern void crgMsgSetCallback( int ( *func ) ( int level, char* message ) );
-    
+
 #ifdef __cplusplus
 }
 #endif
 
-    
+
 #endif /* _CRG_BASELIB_H */

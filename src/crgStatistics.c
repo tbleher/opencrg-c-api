@@ -58,14 +58,14 @@ void crgCalcStatistics( CrgDataStruct *crgData )
     size_t maxIndex;
     size_t nPtsF = 0;
     size_t nPtsL = 0;
-    
+
     if ( !crgData )
         return;
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "crgCalcStatistics: statistical information about data set:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "    road elevation:\n" );
-    
+
     /* --- mean elevation at start and end of road --- */
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
@@ -75,14 +75,14 @@ void crgCalcStatistics( CrgDataStruct *crgData )
             {
                 zMeanF += crgData->channelZ[i].data[0];
                 nPtsF++;
-                
+
                 if ( crgData->channelZ[i].info.size == 0 )
                 {
                     zMeanL = zMeanF;
                     nPtsL++;
                 }
             }
-            
+
             if ( crgData->channelZ[i].info.size > 0 )
             {
                 if ( !isnan( crgData->channelZ[i].data[crgData->channelZ[i].info.size-1] ) )
@@ -95,27 +95,27 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         else
             crgMsgPrint( dCrgMsgLevelWarn, "        v-channel with index %ld has no data!\n", i );
     }
-    
+
     if ( nPtsF )
         zMeanF /= 1.0 * nPtsF;
-    
+
     if ( nPtsL )
         zMeanL /= 1.0 * nPtsL;
-    
+
     /* --- add the mean value which was used for normalizing the data --- */
     zMeanF += crgData->channelZ[0].info.mean;
     zMeanL += crgData->channelZ[0].info.mean;
-    
+
     crgData->util.zMeanBeg = zMeanF;
     crgData->util.zMeanEnd = zMeanL;
 
     crgMsgPrint( dCrgMsgLevelNotice, "        mean elevation at start [m]: %10.4f\n", zMeanF );
     crgMsgPrint( dCrgMsgLevelNotice, "        mean elevation at end   [m]: %10.4f\n", zMeanL );
-    
+
     /* --- minimum and maximum elevation --- */
     zMin = zMeanF;
     zMax = zMin;
-    
+
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
         for ( j = 0; j < crgData->channelZ[i].info.size; j++ )
@@ -129,22 +129,22 @@ void crgCalcStatistics( CrgDataStruct *crgData )
             }
         }
     }
-    
+
     /* --- add the mean value which was used for normalizing the data --- */
     zMin += crgData->channelZ[0].info.mean;
     zMax += crgData->channelZ[0].info.mean;
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "        min. road elevation     [m]: %10.4f\n", zMin );
     crgMsgPrint( dCrgMsgLevelNotice, "        max. road elevation     [m]: %10.4f\n", zMax );
-    
+
     crgData->util.zMin = zMin;
     crgData->util.zMax = zMax;
-    
+
     /* --- reference line information --- */
     crgMsgPrint( dCrgMsgLevelNotice, "    reference line information:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "        min. u      [m]:   %10.4f\n", crgData->channelU.info.first );
     crgMsgPrint( dCrgMsgLevelNotice, "        max. u      [m]:   %10.4f\n", crgData->channelU.info.last );
-    
+
     if ( !crgData->channelX.info.valid )
     {
         crgMsgPrint( dCrgMsgLevelNotice, "        no reference line data available\n" );
@@ -157,7 +157,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         dy1 = crgData->channelY.data[1] - crgData->channelY.data[0];
         dx1 = crgData->channelX.data[1] - crgData->channelX.data[0];
         crgMsgPrint( dCrgMsgLevelNotice, "        with phi    [rad]: %10.4f\n", atan2( dy1, dx1 ) );
-        
+
         maxIndex = crgData->channelX.info.size - 1;
         crgMsgPrint( dCrgMsgLevelNotice, "        end at x    [m]:   %10.4f\n", crgData->channelX.data[maxIndex] );
         crgMsgPrint( dCrgMsgLevelNotice, "        end at y    [m]:   %10.4f\n", crgData->channelY.data[maxIndex] );
@@ -165,14 +165,14 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         dx1 = crgData->channelX.data[maxIndex] - crgData->channelX.data[maxIndex-1];
         crgMsgPrint( dCrgMsgLevelNotice, "        with phi    [rad]: %10.4f\n", atan2( dy1, dx1 ) );
     }
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "    v range information:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "        min. v      [m]:   %10.4f\n", crgData->channelV.info.first );
     crgMsgPrint( dCrgMsgLevelNotice, "        max. v      [m]:   %10.4f\n", crgData->channelV.info.last );
-    
+
     /* --- look at curvature --- */
     val = 1.0 / pow( crgData->channelU.info.inc, 3.0 );
-    
+
     for ( i = 1; i < crgData->channelX.info.size - 1; i++ )
     {
         dx0  = crgData->channelX.data[i]   - crgData->channelX.data[i-1];
@@ -180,17 +180,17 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         dy0  = crgData->channelY.data[i]   - crgData->channelY.data[i-1];
         dy1  = crgData->channelY.data[i+1] - crgData->channelY.data[i];
         curv = ( dx0 * dy1 - dy0 * dx1 ) * val;
-        
+
         if ( curv < cMin )
             cMin = curv;
-        
+
         if ( curv > cMax )
             cMax = curv;
     }
     crgMsgPrint( dCrgMsgLevelNotice, "    curvature information at reference line:\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "        max right curvature [1/m]:   %10.4f\n", cMin );
     crgMsgPrint( dCrgMsgLevelNotice, "        max left curvature  [1/m]:   %10.4f\n", cMax);
-    
+
     /* --- look at banking --- */
     if ( crgData->channelBank.info.size )
     {
@@ -198,7 +198,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         crgMsgPrint( dCrgMsgLevelNotice, "        start bank [m/m]:   %10.4f\n", crgData->channelBank.data[0] );
         crgMsgPrint( dCrgMsgLevelNotice, "        end bank   [m/m]:   %10.4f\n", crgData->channelBank.data[crgData->channelBank.info.size - 1] );
     }
-    
+
     /* --- look at slope data --- */
     crgMsgPrint( dCrgMsgLevelNotice, "    reference line elevation:\n" );
     if ( crgData->channelRefZ.info.size )
@@ -211,7 +211,7 @@ void crgCalcStatistics( CrgDataStruct *crgData )
         crgMsgPrint( dCrgMsgLevelNotice, "        start elevation [m]:   %10.4f\n", 0.0 );
         crgMsgPrint( dCrgMsgLevelNotice, "        end elevation   [m]:   %10.4f\n", 0.0 );
     }
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "crgCalcStatistics: end of statistical information\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "\n" );
 }
@@ -221,13 +221,13 @@ crgPrintElevData( CrgDataStruct *crgData )
 {
     size_t i;
     size_t j;
-    
+
     if ( !crgData )
         return;
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "\n" );
     crgMsgPrint( dCrgMsgLevelNotice, "crgPrintElevData: elevation data contained in data set:\n" );
-    
+
     for ( i = 0; i < crgData->channelV.info.size; i++ )
     {
         fprintf( stderr, "channel %ld at offset %.3f\n", (unsigned long)i, crgData->channelV.data[i] );
@@ -251,10 +251,10 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
     double l;
     double divisor;
     int    valid = 0;
-    
+
     if ( !crgData )
         return;
-    
+
     /* --- compute sine and cosine of directoin at either end of reference line */
     crgData->util.phiFirstSin = sin( crgData->channelPhi.info.first );
     crgData->util.phiFirstCos = cos( crgData->channelPhi.info.first );
@@ -263,36 +263,36 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
 
     /* --- reset the "closed" feature --- */
     crgData->util.uIsClosed = 0;
-                
+
     /* --- calculate intersection point between extrapolated directions of start and end point --- */
     /* line extending before begin of data (x,y) = (a1,a2) + k * (m1,m2) */
     a1 = crgData->channelX.info.first;
     a2 = crgData->channelY.info.first;
-    
+
     m1 = crgData->util.phiFirstCos;
     m2 = crgData->util.phiFirstSin;
-    
+
     /* line extending after end of data (x,y) = (b1,b2) + l * (n1,n2) */
     b1 = crgData->channelX.info.last;
     b2 = crgData->channelY.info.last;
-    
+
     n1 = crgData->util.phiLastCos;
     n2 = crgData->util.phiLastSin;
-    
+
     /* compute cosine of angle between lines */
     divisor = m1 * n1 + m2 * n2;
-    
+
     /* --- rule: angle between the extensions of begin and start --- */
     /* --- must not be larger than 60 deg                        --- */
     if ( divisor > 0.5 )
     {
         /* prevent overlap of data areas */
-        
+
         /* test 1: line perpendicular to begin of data set must intersect with */
         /*         extension on end of data set within valid area              */
         l     = ( ( a2 - b2 ) * m2 + ( a1 - b1 ) * m1 ) / divisor;
         valid = l > 0.0;
-        
+
         if ( valid )
         {
             /* test 2: line perpendicular to end of data set must intersect with */
@@ -300,7 +300,7 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
             k     = ( ( b2 - a2 ) * n2 + ( b1 - a1 ) * n1 ) / divisor;
             valid = k < 0.0;
         }
-        
+
         if ( valid )
         {
             /* --- lines are almost parallel; also: fallback solution --- */
@@ -308,20 +308,20 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
             crgData->util.uCloseMin  = crgData->channelU.info.first + 0.5 * k * divisor;
             crgData->util.uCloseMax  = crgData->channelU.info.last  + 0.5 * l * divisor;
             crgData->util.uIsClosed  = 1;
-        
+
             /* --- now check for valid intersection of lines, i.e. not parallel --- */
             divisor = m1 * n2 - m2 * n1;
-            
+
             /* --- do lines intersect at all or are they parallel? --- */
             if ( fabs( divisor ) > dCrgParallelLimit )
             {
                 l = ( m1 * ( a2 - b2 ) + m2 * ( b1 - a1 ) ) / divisor;
-                
+
                 /* --- intersection on correct side of end point? --- */
                 if ( l >= 0.0 )
                 {
                     k = ( n1 * ( a2 - b2 ) + n2 * ( b1 - a1 ) ) / divisor;
-                                        
+
                     /* --- intersection on correct side of start point? --- */
                     if ( k <= 0.0 )
                     {
@@ -335,7 +335,7 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
                 crgMsgPrint( dCrgMsgLevelNotice, "crgCalcUtilityData: lines are (almost) parallel\n" );
         }
     }
-    
+
     if ( crgData->util.uIsClosed )
     {
         crgMsgPrint( dCrgMsgLevelNotice, "crgCalcUtilityData: reference line may be closed:\n" );
@@ -347,9 +347,9 @@ void crgCalcUtilityData( CrgDataStruct *crgData )
     }
     else
         crgMsgPrint( dCrgMsgLevelNotice, "crgCalcUtilityData: reference line may not be closed.\n" );
-    
+
     /* --- calculate a v-index table for faster data access --- */
     crgDataSetBuildVTable( crgData->admin.id );
-    
+
     crgMsgPrint( dCrgMsgLevelDebug, "crgCalcUtilityData: created hash table for v position.\n" );
 }

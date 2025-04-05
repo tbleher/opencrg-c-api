@@ -29,9 +29,9 @@
 /* ====== DEFINITIONS ====== */
 
 /* ====== TYPE DEFINITIONS ====== */
-    
+
 /* ====== LOCAL METHODS ====== */
-    
+
 /**
 * access/create an option entry for the given option ID
 * @param  optionList pointer to a list holding all applicable options
@@ -208,7 +208,7 @@ crgOptionGetName( unsigned int optionId )
             return "unknown";
             break;
    }
-    
+
     /* --- just to avoid a compiler warning --- */
     return "unknown";
 }
@@ -257,21 +257,21 @@ crgOptionGetType( unsigned int optionId )
         case dCrgModRefLineOffsetZ:
             return dCrgOptionDataTypeDouble;
             break;
-            
+
         default:
             return dCrgOptionDataTypeInt;
             break;
     }
-    
+
     /* --- just to avoid a compiler warning --- */
     return dCrgOptionDataTypeInt;
 }
 
-int 
+int
 crgOptionSetInt( CrgOptionsStruct* optionList, unsigned int optionId, int optionValue )
 {
     CrgOptionEntryStruct* entry = crgOptionGetEntry( optionList, optionId, dCrgOptionDataTypeInt );
-    
+
     if ( !entry )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionSetInt: error accessing option entry for option <%s>. "
@@ -279,16 +279,16 @@ crgOptionSetInt( CrgOptionsStruct* optionList, unsigned int optionId, int option
         return 0;
     }
     crgMsgPrint( dCrgMsgLevelDebug, "crgOptionSetInt: setting option <%s> to value <%d>\n", crgOptionGetName( optionId ), optionValue );
-    
+
     entry->id       = optionId;
     entry->iValue   = optionValue;
     entry->dataType = dCrgOptionDataTypeInt;
     entry->valid    = 1;
-    
+
     return 1;
 }
 
-int 
+int
 crgOptionSetDouble( CrgOptionsStruct* optionList, unsigned int optionId, double optionValue )
 {
 
@@ -309,41 +309,41 @@ crgOptionSetDouble( CrgOptionsStruct* optionList, unsigned int optionId, double 
         default:
             break;
     }
-    
+
     entry = crgOptionGetEntry( optionList, optionId, dCrgOptionDataTypeDouble );
-    
+
     if ( !entry )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionSetDouble: error accessing option entry for option <%s>. "
                                        "Wrong type, option identifier or contact point ID\n", crgOptionGetName( optionId ) );
         return 0;
     }
-    
+
     entry->id       = optionId;
     entry->dValue   = optionValue;
     entry->dataType = dCrgOptionDataTypeDouble;
     entry->valid    = 1;
-    
+
     return 1;
 }
 
-int 
+int
 crgOptionGetInt( const CrgOptionsStruct* optionList, unsigned int optionId, int *optionValue )
 {
     if ( !crgOptionIsSet( optionList, optionId ) )
         return 0;
-    
+
     *optionValue = optionList->entry[optionId].iValue;
 
     return 1;
 }
 
-int 
+int
 crgOptionGetDouble( const CrgOptionsStruct* optionList, unsigned int optionId, double *optionValue )
 {
     if ( !crgOptionIsSet( optionList, optionId ) )
         return 0;
-    
+
     *optionValue = optionList->entry[optionId].dValue;
 
     return 1;
@@ -355,7 +355,7 @@ crgOptionRemove( CrgOptionsStruct* optionList, unsigned int optionId )
 {
     /* --- instead of re-allocating the options, shifting entries etc.,     --- */
     /* --- "old" entries are just marked invalid and may be reused later on --- */
-    
+
     if ( !optionList )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionRemove: invalid option list.\n" );
@@ -366,7 +366,7 @@ crgOptionRemove( CrgOptionsStruct* optionList, unsigned int optionId )
         return 0;
 
     optionList->entry[optionId].valid = 0;
-    
+
     return 1;
 }
 
@@ -374,16 +374,16 @@ int
 crgOptionRemoveAll( CrgOptionsStruct* optionList )
 {
     unsigned int i;
-    
+
     if ( !optionList )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionRemoveAll: invalid option list.\n" );
         return 0;
     }
-    
+
     for ( i = 0; i < optionList->noEntries; i++ )
         optionList->entry[i].valid = 0;
-    
+
     return 1;
 }
 
@@ -392,7 +392,7 @@ crgOptionsPrint( CrgOptionsStruct* optionList, const char* label )
 {
     unsigned int i;
     int hasOption = 0;
-    
+
     if ( !optionList )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionsPrint: invalid %s list.\n", label );
@@ -400,7 +400,7 @@ crgOptionsPrint( CrgOptionsStruct* optionList, const char* label )
     }
 
     crgMsgPrint( dCrgMsgLevelNotice, "crgOptionsPrint: available %ss:\n", label );
-    
+
     for ( i = 0; i < optionList->noEntries; i++ )
         if ( optionList->entry[i].valid )
         {
@@ -418,10 +418,10 @@ crgOptionsPrint( CrgOptionsStruct* optionList, const char* label )
                     break;
             }
         }
-        
+
     if ( !hasOption )
         crgMsgPrint( dCrgMsgLevelNotice, "    %ss disabled or none set\n", label );
-    
+
     crgMsgPrint( dCrgMsgLevelNotice, "\n" );
 }
 
@@ -430,23 +430,23 @@ crgOptionIsSet( const CrgOptionsStruct* optionList, unsigned int optionId )
 {
     if ( !optionList )
         return 0;
-    
+
     if ( optionList->noEntries <= optionId )
         return 0;
-    
+
     return optionList->entry[optionId].valid;
 }
 
-int 
+int
 crgOptionHasValueInt( const CrgOptionsStruct* optionList, unsigned int optionId, int optionValue )
 {
     if ( !crgOptionIsSet( optionList, optionId ) )
         return 0;
-    
+
     return optionList->entry[optionId].iValue == optionValue;
 }
 
-static CrgOptionEntryStruct* 
+static CrgOptionEntryStruct*
 crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, unsigned int optionType )
 {
     if ( !optionList )
@@ -454,14 +454,14 @@ crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, unsigned
         crgMsgPrint( dCrgMsgLevelDebug, "crgOptionGetEntry: invalid option set.\n" );
         return NULL;
     }
-    
+
     /* --- perform type check --- */
     if ( crgOptionGetType( optionId ) != optionType )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionGetEntry: wrong type of option <%s>.\n", crgOptionGetName( optionId ) );
         return NULL;
     }
-    
+
     /* --- for faster computation, the options are kept in a list with one entry for each --- */
     /* --- possible optionId, so that options can be accessed directly by index           --- */
     if ( optionId < optionList->noEntries )
@@ -469,15 +469,15 @@ crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, unsigned
 
     /* --- new option, so add to list of options --- */
     optionList->entry = ( CrgOptionEntryStruct* ) crgRealloc( optionList->entry, ( optionId + 1 ) * sizeof( CrgOptionEntryStruct ) );
-    
+
     if ( !optionList->entry )
         return NULL;
-    
+
     /* --- initialize the new data --- */
     memset( &( optionList->entry[optionList->noEntries] ), 0, ( optionId - optionList->noEntries + 1 ) * sizeof( CrgOptionEntryStruct ) );
-    
+
     optionList->noEntries = optionId + 1;
-    
+
     return &( optionList->entry[optionId] );
 }
 
@@ -489,10 +489,10 @@ crgOptionSetDefaultOptions( CrgOptionsStruct* optionList )
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionSetDefault: invalid option set.\n" );
         return;
     }
-    
+
     /* remove all existing options */
     crgOptionRemoveAll( optionList );
-    
+
     /* add the default options, one at a time */
     crgOptionSetInt( optionList, dCrgCpOptionCurvMode,    dCrgCurvLateral      );
     crgOptionSetInt( optionList, dCrgCpOptionBorderModeU, dCrgBorderModeExKeep );
@@ -511,10 +511,10 @@ crgOptionSetDefaultModifiers( CrgOptionsStruct* optionList )
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionSetDefaultModifiers: invalid modifier set.\n" );
         return;
     }
-    
+
     /* remove all existing modifiers */
     crgOptionRemoveAll( optionList );
-        
+
     /* add the default modifiers, one at a time */
     crgOptionSetInt( optionList, dCrgModGridNaNMode, dCrgGridNaNKeepLast );
     crgOptionSetDouble( optionList, dCrgModRefPointX,   0.0 );
@@ -535,41 +535,41 @@ crgOptionCopyAll( CrgOptionsStruct* dst, CrgOptionsStruct* src )
     /* --- delete default initialisation --- */
     if( dst->entry )
         crgFree( dst->entry );
-    
+
     /* --- first copy administration data --- */
     memcpy( dst, src, sizeof( CrgOptionsStruct ) );
-    
+
     /* --- now copy the contents --- */
     dst->entry = ( CrgOptionEntryStruct* ) crgCalloc( src->noEntries, sizeof( CrgOptionEntryStruct ) );
-    
+
     if ( !( dst->entry ) )
     {
         crgMsgPrint( dCrgMsgLevelWarn, "crgOptionCopyAll: could not allocate space for options. Ignoring request.\n" );
         dst->noEntries = 0;
         return;
     }
-      
+
     /* --- copy the actual entries --- */
     memcpy( dst->entry, src->entry, src->noEntries * sizeof( CrgOptionEntryStruct ) );
 }
 
-int 
+int
 crgOptionCreateList( CrgOptionsStruct* optionList )
 {
     if ( !optionList )
         return 0;
-    
+
     if ( optionList->entry )
         crgFree( optionList->entry );
 
     optionList->noEntries = 0;
     optionList->entry     = ( CrgOptionEntryStruct* ) crgCalloc( dCrgSizeOptList + 1, sizeof( CrgOptionEntryStruct ) );
-    
+
     if ( !optionList->entry )
         return 0;
-    
+
     optionList->noEntries = dCrgSizeOptList + 1;
-    
+
     return 1;
 }
 
