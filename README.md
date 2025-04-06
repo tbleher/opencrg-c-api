@@ -19,4 +19,10 @@ helpfully collected historical releases of OpenCRG.
 Building OpenCRG C API
 ======================
 
-Use `make` and install the headers and resulting archive library manually.
+Use `cmake` to build. Example invocation:
+
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build .
+
