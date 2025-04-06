@@ -431,7 +431,7 @@ crgEvalxy2uvPtr( CrgContactPointStruct *cp, double x, double y, double* u, doubl
         /* --- avoid registering twice for the same index --- */
         if ( cp->history.entry[0].index != indexP1 )
         {
-            memmove( &( cp->history.entry[1] ), cp->history.entry, ( cp->history.totalSize - 1 ) * cp->history.entrySize );
+            memmove( &( cp->history.entry[1] ), cp->history.entry, (size_t)( cp->history.totalSize - 1 ) * cp->history.entrySize );
 
             if ( cp->history.usedSize < cp->history.totalSize )
                 cp->history.usedSize++;
