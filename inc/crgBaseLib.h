@@ -137,6 +137,19 @@
 #define dCrgOrientFwd               0   /* forward orientation                */
 #define dCrgOrientRev               1   /* reverse orientation                */
 
+/* ====== Compiler support macros ====== */
+#ifdef __GNUC__
+/**
+* The GNU C compiler has support for checking printf-like functions for
+* correctness. One just needs to add this attribute at the end of the function
+* declaration. The parameter describes the position of the format in the
+* parameter list.
+*/
+#define CrgPrintfFormat(i) __attribute__ ((format (printf, (i), ((i)+1))))
+#else
+#define CrgPrintfFormat(i)
+#endif
+
 /* ====== TYPE DEFINITIONS ====== */
 
 /* ====== METHODS in crgMgr.c ====== */
@@ -533,7 +546,7 @@ extern "C"
     * @param level  criticality of the message
     * @param format variable argument list as for standard printf
     */
-    extern void crgMsgPrint( int level, const char *format, ...);
+    extern void crgMsgPrint( int level, const char *format, ...) CrgPrintfFormat(2);
 
     /**
     * allocate some space from memory, usually equal to calloc()
