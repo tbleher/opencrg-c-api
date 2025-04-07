@@ -39,7 +39,7 @@
 * @param optionType  numeric ID of the option's assumed type
 * @return pointer to the option entry in the contact point's option list
 */
-static CrgOptionEntryStruct* crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, unsigned int optionType );
+static CrgOptionEntryStruct* crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, int optionType );
 
 /* ====== IMPLEMENTATION ====== */
 
@@ -447,7 +447,7 @@ crgOptionHasValueInt( const CrgOptionsStruct* optionList, unsigned int optionId,
 }
 
 static CrgOptionEntryStruct*
-crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, unsigned int optionType )
+crgOptionGetEntry( CrgOptionsStruct* optionList, unsigned int optionId, int optionType )
 {
     if ( !optionList )
     {

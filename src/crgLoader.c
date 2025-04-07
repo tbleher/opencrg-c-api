@@ -371,8 +371,8 @@ static int isLittleEndian( void );
 * check whether the first string begins with the characters of the second, ignoring case;
 * this method was introduced due to incompatibility of strncasecmp with
 * standard c compilers
-* @param str1	string whose begin should is tested for occurrence of str2
-* @param str2   string to be searched for at the begin of str1
+* @param str1 string whose begin should be tested for occurrence of str2
+* @param str2 string to be searched for at the begin of str1
 * @return 1 if strings match, otherwise 0
 */
 static int crgStrBeginsWithStrNoCase( const char* str1, const char* str2 );
@@ -401,7 +401,7 @@ static int crgLoaderAddFile( const char* filename, CrgDataStruct** crgData );
 
 /* ====== LOCAL VARIABLES ====== */
 
-static CrgReaderCallbackStruct	sLoaderCallbacksCommon[] =
+static CrgReaderCallbackStruct sLoaderCallbacksCommon[] =
 {
    { "$ROAD_CRG_MODS",             setSection,         dFileSectionModifiers        },
    { "$ROAD_CRG_OPTS",             setSection,         dFileSectionOptions          },
@@ -414,7 +414,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksCommon[] =
    { "",                NULL,                 -1 }
 };
 
-static CrgReaderCallbackStruct	sLoaderCallbacksRoad[] =
+static CrgReaderCallbackStruct sLoaderCallbacksRoad[] =
 {
    { "reference_line_start_u",     decodeHdrDouble,    dOpcodeRefLineStartU         },
    { "reference_line_start_x",     decodeHdrDouble,    dOpcodeRefLineStartX         },
@@ -442,7 +442,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksRoad[] =
    { "",                NULL,                 -1 }
 };
 
-static CrgReaderCallbackStruct	sLoaderCallbacksOpts[] =
+static CrgReaderCallbackStruct sLoaderCallbacksOpts[] =
 {
    { "border_mode_u",        decodeHdrOpMod, dCrgCpOptionBorderModeU        },
    { "border_offset_u",      decodeHdrOpMod, dCrgCpOptionBorderOffsetU      },
@@ -472,7 +472,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksOpts[] =
    { "",                     NULL,           -1                             }
 };
 
-static CrgReaderCallbackStruct	sLoaderCallbacksMods[] =
+static CrgReaderCallbackStruct sLoaderCallbacksMods[] =
 {
    { "scale_z_grid",         decodeHdrOpMod, dCrgModScaleZ                  },
    { "scale_slope",          decodeHdrOpMod, dCrgModScaleSlope              },
@@ -502,7 +502,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksMods[] =
    { "",                     NULL,           -1                             }
 };
 
-static CrgReaderCallbackStruct	sLoaderCallbacksDataDef[] =
+static CrgReaderCallbackStruct sLoaderCallbacksDataDef[] =
 {
    { "U:", decodeIndependent,  dOpcodeNone                  },
    { "D:", decodeDefined,      dOpcodeNone                  },
@@ -511,7 +511,7 @@ static CrgReaderCallbackStruct	sLoaderCallbacksDataDef[] =
    { "",   NULL,               -1                           }
 };
 
-static CrgReaderCallbackStruct	sLoaderCallbacksFile[] =
+static CrgReaderCallbackStruct sLoaderCallbacksFile[] =
 {
    { "$",  decodeIncludeFile,  dOpcodeIncludeDone },
    { "",   NULL,               -1                 }
@@ -924,7 +924,11 @@ decodeHdrOpMod( CrgDataStruct* crgData, const char* buffer, int opcode )
 static int
 setSection( CrgDataStruct* crgData, const char* buffer, int newSection )
 {
-   /* --- changing from none or to none? --- */
+    // setSection is a callback, therefore the parameter list is fixed; buffer
+    // is not used here
+    (void)buffer;
+
+    /* --- changing from none or to none? --- */
     if ( ( crgData->admin.sectionType == dFileSectionNone ) || ( newSection == dFileSectionNone ) )
     {
         crgData->admin.sectionType = newSection;
@@ -970,12 +974,22 @@ setSection( CrgDataStruct* crgData, const char* buffer, int newSection )
 static int
 decodeIndependent( CrgDataStruct* crgData, const char* buffer, int code )
 {
+    // decodeIndependent is a callback, therefore the parameter list is fixed;
+    // the parameters are not used here
+    (void)crgData;
+    (void)buffer;
+    (void)code;
+
     return 1;
 }
 
 static int
 decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
 {
+    // decodeDefined is a callback, therefore the parameter list is fixed;
+    // the parameter code is not used here
+    (void)code;
+
     const char* bufPtr = buffer;
     const char* tmpPtr = NULL;
     size_t i;
@@ -1133,6 +1147,10 @@ decodeDefined( CrgDataStruct* crgData, const char* buffer, int code )
 static int
 decodeDataFormat( CrgDataStruct* crgData, const char* buffer, int code )
 {
+    // decodeDataFormat is a callback, therefore the parameter list is fixed;
+    // the parameter code is not used here
+    (void)code;
+
     const char* bufPtr = buffer;
     char dataFormat[] = "0000";
 
@@ -2863,7 +2881,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
     struct stat fileStat;
     char*         bufPtr;
     size_t        nBytesLeft;
-	FILE*         fPtr = NULL;
+    FILE*         fPtr = NULL;
     CrgDataStruct *crgData = *crgRetData;
 
     /* --- open the file --- */
@@ -2898,7 +2916,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
 
     /* --- memory map the file for faster access --- */
     stat( filename, &fileStat );
-	crgData->admin.fileBuffer = ( char * ) crgCalloc( 1, fileStat.st_size + 1 );
+    crgData->admin.fileBuffer = ( char * ) crgCalloc( 1, fileStat.st_size + 1 );
 
     if ( !crgData->admin.fileBuffer )
     {
@@ -2907,8 +2925,8 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
         return 0;
     }
 
-	noBytesRead = fread( crgData->admin.fileBuffer, 1, fileStat.st_size, fPtr );
- 	fclose( fPtr );
+    noBytesRead = fread( crgData->admin.fileBuffer, 1, fileStat.st_size, fPtr );
+    fclose( fPtr );
 
     if ( noBytesRead < ( size_t ) fileStat.st_size )
     {
@@ -2936,7 +2954,7 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
     if ( ( crgData->admin.defMask & dCrgDataDefVPos ) )
     {
         if ( !prepareFromPosDef( crgData ) )
-        return 0;
+            return 0;
     }
 
     if ( ( crgData->admin.defMask & dCrgDataDefVIndex ) )
@@ -2973,25 +2991,25 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
 static int
 crgStrBeginsWithStrNoCase( const char* str1, const char* str2 )
 {
-	char* c1 = ( char* ) str1;
-	char* c2 = ( char* ) str2;
-	unsigned int i;
+    char* c1 = ( char* ) str1;
+    char* c2 = ( char* ) str2;
+    unsigned int i;
 
-	if ( !str1 || !str2 )
-		return 0;
+    if ( !str1 || !str2 )
+        return 0;
 
-	if ( strlen( str1 ) < strlen( str2 ) )
-		return 0;
+    if ( strlen( str1 ) < strlen( str2 ) )
+        return 0;
 
-	for ( i = 0; i < strlen( str2 ); i++ )
-	{
-		if ( tolower( *c1 ) != tolower( *c2 ) )
-			return 0;
+    for ( i = 0; i < strlen( str2 ); i++ )
+    {
+        if ( tolower( *c1 ) != tolower( *c2 ) )
+            return 0;
 
-		c1++;
-		c2++;
-	}
-	return 1;
+        c1++;
+        c2++;
+    }
+    return 1;
 }
 
 static void

@@ -156,6 +156,9 @@ crgPortSetMaxLogMsgs( int maxNo )
 int
 crgPortMsgIsPrintable( int level )
 {
+    // For now the level is ignored
+    (void)level;
+
     return mMaxWarnMsgs != 0;
 }
 

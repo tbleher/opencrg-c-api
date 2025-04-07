@@ -504,7 +504,6 @@ crgDataSetModifiersApply( int dataSetId )
 {
     double dValue;
     int    iValue;
-    size_t i;
     int    needPrepare = 0; /* per default, data doesn't have to be re-prepared */
 
     CrgDataStruct *crgData = crgDataSetAccess( dataSetId );
@@ -520,7 +519,7 @@ crgDataSetModifiersApply( int dataSetId )
     {
         needPrepare = 1;
 
-        for ( i = 0; i < crgData->channelV.info.size; i++ )
+        for ( size_t i = 0; i < crgData->channelV.info.size; i++ )
             crgDataScaleChannel( ( CrgChannelBaseStruct* ) &( crgData->channelZ[i] ), dValue, 0 );
     }
 
