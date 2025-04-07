@@ -134,7 +134,7 @@ static int terminateReader( CrgDataStruct* crgData, int retCode );
 * @param opcode     the opcode resulting from the found callback
 * @return the callback method or NULL if none was found
 */
-static int  ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int ) ;
+static int  ( *scanTagsForCallback( const char* buffer, const CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int ) ;
 
 /**
 * check whether the first tag contained in the buffer is and "end-of-section" tag
@@ -401,7 +401,7 @@ static int crgLoaderAddFile( const char* filename, CrgDataStruct** crgData );
 
 /* ====== LOCAL VARIABLES ====== */
 
-static CrgReaderCallbackStruct sLoaderCallbacksCommon[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksCommon[] =
 {
    { "$ROAD_CRG_MODS",             setSection,         dFileSectionModifiers        },
    { "$ROAD_CRG_OPTS",             setSection,         dFileSectionOptions          },
@@ -414,7 +414,7 @@ static CrgReaderCallbackStruct sLoaderCallbacksCommon[] =
    { "",                NULL,                 -1 }
 };
 
-static CrgReaderCallbackStruct sLoaderCallbacksRoad[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksRoad[] =
 {
    { "reference_line_start_u",     decodeHdrDouble,    dOpcodeRefLineStartU         },
    { "reference_line_start_x",     decodeHdrDouble,    dOpcodeRefLineStartX         },
@@ -442,7 +442,7 @@ static CrgReaderCallbackStruct sLoaderCallbacksRoad[] =
    { "",                NULL,                 -1 }
 };
 
-static CrgReaderCallbackStruct sLoaderCallbacksOpts[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksOpts[] =
 {
    { "border_mode_u",        decodeHdrOpMod, dCrgCpOptionBorderModeU        },
    { "border_offset_u",      decodeHdrOpMod, dCrgCpOptionBorderOffsetU      },
@@ -472,7 +472,7 @@ static CrgReaderCallbackStruct sLoaderCallbacksOpts[] =
    { "",                     NULL,           -1                             }
 };
 
-static CrgReaderCallbackStruct sLoaderCallbacksMods[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksMods[] =
 {
    { "scale_z_grid",         decodeHdrOpMod, dCrgModScaleZ                  },
    { "scale_slope",          decodeHdrOpMod, dCrgModScaleSlope              },
@@ -502,7 +502,7 @@ static CrgReaderCallbackStruct sLoaderCallbacksMods[] =
    { "",                     NULL,           -1                             }
 };
 
-static CrgReaderCallbackStruct sLoaderCallbacksDataDef[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksDataDef[] =
 {
    { "U:", decodeIndependent,  dOpcodeNone                  },
    { "D:", decodeDefined,      dOpcodeNone                  },
@@ -511,7 +511,7 @@ static CrgReaderCallbackStruct sLoaderCallbacksDataDef[] =
    { "",   NULL,               -1                           }
 };
 
-static CrgReaderCallbackStruct sLoaderCallbacksFile[] =
+static const CrgReaderCallbackStruct sLoaderCallbacksFile[] =
 {
    { "$",  decodeIncludeFile,  dOpcodeIncludeDone },
    { "",   NULL,               -1                 }
@@ -608,7 +608,7 @@ terminateReader( CrgDataStruct *crgData, int retCode )
 }
 
 
-static int ( *scanTagsForCallback( const char* buffer, CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int )
+static int ( *scanTagsForCallback( const char* buffer, const CrgReaderCallbackStruct* cbs, int* opcode ) )( CrgDataStruct*, const char*, int )
 {
     const char* checkPtr = buffer;
 
@@ -1361,7 +1361,7 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
     int    opcode;
     size_t bytesRead;
     int    lineOfFile = 0;
-    CrgReaderCallbackStruct *cbs = sLoaderCallbacksCommon;
+    const CrgReaderCallbackStruct *cbs = sLoaderCallbacksCommon;
 
     /* --- initialize the section indicator --- */
     crgData->admin.sectionType = dFileSectionNone;
