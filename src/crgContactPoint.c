@@ -91,6 +91,8 @@ crgContactPointCreate( int dataSetId )
 
 #ifdef dCrgEnableDebug2
     crgMsgPrint( dCrgMsgLevelNotice, "crgContactPointCreate: created contact point %d. Now have %d contact points.\n", tgtId, validIds );
+#else
+    (void)validIds;
 #endif
 
    /* --- return the contact point ID, i.e. its position in the contact point table --- */
