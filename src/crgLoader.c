@@ -3104,7 +3104,7 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
 
                         memset( envVar, 0,  256 * sizeof( char ) );
 
-                        if( bufPtrEnvEnd - bufPtrEnv >= sizeof(envVar) )
+                        if( bufPtrEnvEnd - bufPtrEnv >= (ptrdiff_t)sizeof(envVar) )
                         {
                             ptrdiff_t size = bufPtrEnvEnd - bufPtrEnv;
                             int intSize = size > INT_MAX ? INT_MAX : (int)size;
