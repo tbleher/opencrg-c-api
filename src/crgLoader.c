@@ -27,11 +27,13 @@
 #include "crgBaseLibPrivate.h"
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <limits.h>
 #include <math.h>
 
 /* ====== DEFINITIONS ====== */
@@ -1426,7 +1428,10 @@ parseFileHeader( CrgDataStruct* crgData, char **dataPtr, size_t* nBytesLeft )
                     setSection( crgData, NULL, dFileSectionNone );
                 }
                 else
-                    decodeIncludeFile( crgData, buffer, dOpcodeIncludeItem );
+                {
+                    if( !decodeIncludeFile( crgData, buffer, dOpcodeIncludeItem ) )
+                        return 0;
+                }
                 break;
 
             default:
@@ -3079,6 +3084,11 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
                     if ( bufPtrEnv )
                     {
                         /* attach all characters before the environment variable to the filename */
+                        if( strlen(filename) + (bufPtrEnv - bufPtr - 1) >= sizeof(filename) )
+                        {
+                            crgMsgPrint( dCrgMsgLevelFatal, "decodeIncludeFile: filename is too long\n" );
+                            return 0;
+                        }
                         strncat( filename, bufPtr, ( bufPtrEnv - bufPtr - 1 ) );
 
                         /* retrieve the environment variable */
@@ -3094,11 +3104,28 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
 
                         memset( envVar, 0,  256 * sizeof( char ) );
 
+                        if( bufPtrEnvEnd - bufPtrEnv >= sizeof(envVar) )
+                        {
+                            ptrdiff_t size = bufPtrEnvEnd - bufPtrEnv;
+                            int intSize = size > INT_MAX ? INT_MAX : (int)size;
+                            crgMsgPrint( dCrgMsgLevelFatal, "decodeIncludeFile: environment variable <%.*s> is too long\n", intSize, bufPtrEnv );
+                            return 0;
+                        }
+
                         strncpy( envVar, bufPtrEnv, ( bufPtrEnvEnd - bufPtrEnv ) );
 
                         /* attach contents of environment variable to filename */
-                        if ( getenv( envVar ) )
-                            strcat( filename, getenv( envVar ) );
+                        const char* envVarContent = getenv( envVar );
+                        if ( envVarContent )
+                        {
+                            size_t envVarLength = strlen(envVarContent);
+                            if( envVarLength + strlen(filename) >= sizeof(filename) )
+                            {
+                                crgMsgPrint( dCrgMsgLevelFatal, "decodeIncludeFile: cannot expand environment variable <%s>: content <%s> is too long\n", envVar, envVarContent );
+                                return 0;
+                            }
+                            strcat( filename, envVarContent );
+                        }
                         else
                             crgMsgPrint( dCrgMsgLevelWarn, "decodeIncludeFile: undefined environment variable <%s>\n", envVar );
 
@@ -3107,6 +3134,11 @@ decodeIncludeFile( CrgDataStruct* crgData, const char* buffer, int code )
                     }
                     else
                     {
+                        if( strlen(filename) + (bufPtrEnd - bufPtr) >= sizeof(filename) )
+                        {
+                            crgMsgPrint( dCrgMsgLevelFatal, "decodeIncludeFile: filename is too long\n" );
+                            return 0;
+                        }
                         strncat( filename, bufPtr, bufPtrEnd - bufPtr );
                         bufPtr = bufPtrEnd;
                     }
