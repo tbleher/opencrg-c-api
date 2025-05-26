@@ -28,5 +28,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC inc)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 
 if(UNIX)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 endif()
