@@ -2996,8 +2996,8 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
 static int
 crgStrBeginsWithStrNoCase( const char* str1, const char* str2 )
 {
-    char* c1 = ( char* ) str1;
-    char* c2 = ( char* ) str2;
+    const char* c1 = str1;
+    const char* c2 = str2;
     unsigned int i;
 
     if ( !str1 || !str2 )
@@ -3008,7 +3008,7 @@ crgStrBeginsWithStrNoCase( const char* str1, const char* str2 )
 
     for ( i = 0; i < strlen( str2 ); i++ )
     {
-        if ( tolower( *c1 ) != tolower( *c2 ) )
+        if ( tolower( (unsigned char) *c1 ) != tolower( (unsigned char) *c2 ) )
             return 0;
 
         c1++;
