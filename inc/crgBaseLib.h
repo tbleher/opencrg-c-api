@@ -28,6 +28,7 @@
 
 /* ====== INCLUSIONS ====== */
 #include <stdlib.h>
+#include <stdbool.h>
 
 /* ====== DEFINITIONS ====== */
 
@@ -358,6 +359,13 @@ extern "C"
     * @return identifier of the resulting data set or 0 if not successful
     */
     extern int crgLoaderReadFile( const char* filename );
+
+    /**
+    * suppress the fatal message if the file was not found in function
+    * crgLoaderAddFile and crgLoaderReadFile
+    * @param suppress   true to suppress, otherwise false
+    */
+    extern void crgLoaderSuppressFileNotFoundFatalMsg( bool suppress );
 
 /* ====== METHODS in crgContactPoint.c ====== */
     /**
