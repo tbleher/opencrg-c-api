@@ -1725,6 +1725,13 @@ parseCenterLine( CrgDataStruct* crgData, char *dataPtr, size_t nBytesLeft )
         */
     }
 
+    /* --- At least one record required to continue --- */
+    if (nRec < 1)
+    {
+        crgMsgPrint(dCrgMsgLevelFatal, "parseCenterLine: zero records could be decoded.\n");
+        return 0;
+    }
+
     /* --- check (x, y) channel consistency --- */
     if ( crgData->channelX.info.defined )
     {
@@ -2968,6 +2975,13 @@ crgLoaderAddFile( const char* filename, CrgDataStruct** crgRetData )
     /* --- check the data consistency (i.e. header information) --- */
     if ( !checkHeaderConsistency( crgData ) )
         return 0;
+
+    /* --- check if file contains enough data records --- */
+    if (noBytesRead < (nBytesLeft + (bufPtr - crgData->admin.fileBuffer)))
+    {
+        crgMsgPrint(dCrgMsgLevelFatal, "crgLoaderAddFile: this file's data section does not contain enough records.\n");
+        return 0;
+    }
 
     /* --- prepare some data according to the way v data is defined in the file --- */
     if ( ( crgData->admin.defMask & dCrgDataDefVPos ) )
